@@ -11,10 +11,7 @@
 import axios from 'axios';
 
 // Use Render backend in production, localhost in development
-const isProduction = window.location.hostname !== 'localhost';
-const VITE_API_BASE_URL = isProduction 
-  ? 'https://vetflow-backend-1oey.onrender.com'
-  : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080');
+const VITE_API_BASE_URL = 'https://vetflow-backend-1oey.onrender.com';
 
 const axiosInstance = axios.create({
   baseURL: VITE_API_BASE_URL,
