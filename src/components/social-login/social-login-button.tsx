@@ -26,7 +26,7 @@ export function SocialLoginButtons({ onSuccess }: SocialLoginButtonsProps) {
         console.log('Sending social login payload:', payload);
 
         // Call backend to validate and create user
-        const response = await fetch('http://localhost:8080/auth/social-login', {
+        const response = await fetch('https://vetflow-backend-1oey.onrender.com/auth/social-login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

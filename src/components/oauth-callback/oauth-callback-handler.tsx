@@ -34,7 +34,7 @@ export function OAuthCallbackHandler() {
         console.log('Processing OAuth callback:', { provider, code });
 
         // Exchange code for token with backend
-        const response = await fetch(`http://localhost:8080/auth/oauth/callback`, {
+        const response = await fetch(`https://vetflow-backend-1oey.onrender.com/auth/oauth/callback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
