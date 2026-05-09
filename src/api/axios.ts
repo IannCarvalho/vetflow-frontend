@@ -2,8 +2,11 @@
  * Axios Configuration
  *
  * Configures the HTTP client for communication with the VetFlow backend.
- * Base URL is configured via VITE_API_BASE_URL environment variable.
- * Production backend: https://vetflow-backend-1oey.onrender.com
+ * Automatically detects production vs development environment.
+ * Production backend: https://vetflow-backend-1oey.onrender.com (Render)
+ * Development backend: http://localhost:8080 (Local)
+ * 
+ * Auto-detection: If hostname is not 'localhost', uses production URL
  */
 import axios from 'axios';
 
