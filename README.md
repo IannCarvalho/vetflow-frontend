@@ -72,6 +72,12 @@ frontend/
 
 ## Features
 
+### Authentication
+- Email/password login and registration (`AuthProvider` in `src/contexts/auth-context.tsx`)
+- Social login via OAuth (Google/Facebook/Discord) — configured through `VITE_*` env vars
+- Token persisted in `localStorage`; protected routes gated by `ProtectedRoute` (`src/routes/protected-route.tsx`)
+- Profile and password management wired to the backend `/users` endpoints
+
 ### Dashboard
 - Summary statistics: Total clients, pets, consultations this month, upcoming vaccinations
 - Recent consultations table
@@ -246,7 +252,6 @@ Forms use **React Hook Form** combined with **Yup** for validation. All validati
 
 ## Future Enhancements
 
-- [ ] Authentication/Login
 - [ ] Multi-step consultation form with stepper
 - [ ] Advanced filtering and search
 - [ ] Data export (CSV, PDF)
