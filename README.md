@@ -12,7 +12,7 @@ Built with:
 - **React Hook Form** - Form handling
 - **Axios** - HTTP client
 - **Yup** - Form validation
-- **MUI Data Grid** - Advanced tables
+- **Vitest + Testing Library** - Automated tests
 
 ## Language Convention
 
@@ -42,30 +42,29 @@ frontend/
 ├── src/
 │   ├── api/               # API layer with Axios and typed functions
 │   │   ├── axios.ts       # Axios instance configuration
+│   │   ├── authApi.ts
+│   │   ├── usersApi.ts
 │   │   ├── clientsApi.ts
 │   │   ├── petsApi.ts
 │   │   ├── consultationsApi.ts
-│   │   └── vaccinesApi.ts
+│   │   ├── vaccinesApi.ts
+│   │   └── notificationsApi.ts
 │   ├── hooks/             # React Query hooks for data fetching
 │   │   ├── useClientsQuery.ts
 │   │   ├── usePetsQuery.ts
 │   │   ├── useConsultationsQuery.ts
-│   │   └── useVaccinesQuery.ts
+│   │   ├── useVaccinesQuery.ts
+│   │   └── useNotificationsQuery.ts
+│   ├── contexts/          # React contexts (auth-context.tsx)
+│   ├── routes/            # Route definitions + protected-route.tsx
 │   ├── types/             # TypeScript type definitions
-│   │   └── index.ts       # All VetFlow data types
 │   ├── pages/             # Page components
-│   │   ├── dashboard-vetflow.tsx
-│   │   ├── clientes.tsx
-│   │   ├── pets.tsx
-│   │   ├── consultas.tsx
-│   │   └── vacinas.tsx
 │   ├── sections/          # Feature-specific components
-│   │   ├── clients/
-│   │   ├── pets/
-│   │   └── vaccines/
 │   ├── layouts/           # Layout components
+│   ├── components/        # Shared components
+│   ├── utils/             # Utility functions (format-number, format-time, ...)
 │   ├── theme/             # MUI theme configuration
-│   └── routes/            # Route definitions
+│   └── test/              # Test setup (setup.ts)
 ├── .env.example           # Environment variables template
 └── package.json
 ```
@@ -74,7 +73,7 @@ frontend/
 
 ### Authentication
 - Email/password login and registration (`AuthProvider` in `src/contexts/auth-context.tsx`)
-- Social login via OAuth (Google/Facebook/Discord) — configured through `VITE_*` env vars
+- Social login via Google OAuth (`@react-oauth/google`) — configured through `VITE_GOOGLE_CLIENT_ID` (the `.env.example` also lists Facebook/Discord placeholders for future providers)
 - Token persisted in `localStorage`; protected routes gated by `ProtectedRoute` (`src/routes/protected-route.tsx`)
 - Profile and password management wired to the backend `/users` endpoints
 
@@ -225,11 +224,22 @@ Forms use **React Hook Form** combined with **Yup** for validation. All validati
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Preview production build
+- `npm test` - Run the test suite (Vitest)
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix linting issues
 - `npm run fm:check` - Check code formatting
 - `npm run fm:fix` - Fix code formatting
 - `npm run fix:all` - Run all lint and format fixes
+
+## Testing
+
+Tests run on **Vitest** with **Testing Library** in a `jsdom` environment (configured in the `test` block of `vite.config.ts`, with setup in `src/test/setup.ts`). Coverage currently includes utility functions (`src/utils/`) and the `useAuth` hook (`src/contexts/`), with the API layer mocked so no real HTTP requests are made.
+
+```bash
+npm test
+```
+
+Test files live next to the code they cover as `*.test.ts` / `*.test.tsx`.
 
 ## Browser Support
 
@@ -268,7 +278,6 @@ VetFlow is also MIT licensed.
 ## Support
 
 For issues or questions:
-1. Check the existing documentation in `/docs`
-2. Review the backend API documentation
-3. Create an issue in the repository
+1. Review the backend API documentation (Swagger at `/swagger` on the backend)
+2. Create an issue in the repository
 
