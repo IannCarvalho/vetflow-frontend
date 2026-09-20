@@ -10,11 +10,32 @@
  */
 import axios from 'axios';
 
-// Use Render backend in production, localhost in development
-const VITE_API_BASE_URL = 'https://vetflow-backend-1oey.onrender.com';
+const PRODUCTION_API_URL = 'https://vetflow-backend-1oey.onrender.com';
+const DEVELOPMENT_API_URL = 'http://localhost:8080';
+
+// Resolve the backend URL in this order:
+// 1. Explicit VITE_API_BASE_URL from the environment (.env)
+// 2. Auto-detect: localhost hostname -> local backend, otherwise -> production
+function resolveBaseUrl(): string {
+  const fromEnv = import.meta.env.VITE_API_BASE_URL;
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  return isLocalhost ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
+}
+
+const resolvedBaseUrl = resolveBaseUrl();
+
+// Helps confirm in the browser console which backend the app is talking to.
+console.info('[VetFlow] API baseURL:', resolvedBaseUrl);
 
 const axiosInstance = axios.create({
-  baseURL: VITE_API_BASE_URL,
+  baseURL: resolvedBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
