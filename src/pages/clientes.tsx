@@ -98,6 +98,11 @@ export default function ClientesPage() {
     setOpenDeleteDialog(true);
   }, []);
 
+  const clientPendingDeletion = useMemo(
+    () => clients?.find((c) => c.id === clientToDelete) ?? null,
+    [clients, clientToDelete]
+  );
+
   const handleConfirmDelete = useCallback(() => {
     if (clientToDelete) {
       deleteClientMutation.mutate(clientToDelete, {
@@ -239,14 +244,27 @@ export default function ClientesPage() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
+          <DialogTitle>Excluir cliente?</DialogTitle>
           <DialogContent>
-            <DialogContentText>Essa ação não pode ser desfeita.</DialogContentText>
+            <DialogContentText sx={{ mb: 2 }}>
+              Você está prestes a excluir{' '}
+              <strong>{clientPendingDeletion?.full_name ?? 'este cliente'}</strong>.
+            </DialogContentText>
+            <Alert severity="warning">
+              Todos os <strong>pets</strong>, <strong>consultas</strong> e{' '}
+              <strong>vacinas</strong> vinculados a este cliente também serão excluídos. Essa ação
+              não pode ser desfeita.
+            </Alert>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
+            <Button
+              onClick={handleConfirmDelete}
+              color="error"
+              variant="contained"
+              disabled={deleteClientMutation.isPending}
+            >
+              {deleteClientMutation.isPending ? 'Excluindo...' : 'Excluir'}
             </Button>
           </DialogActions>
         </Dialog>

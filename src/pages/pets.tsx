@@ -122,6 +122,11 @@ export default function PetsPage() {
     setOpenDeleteDialog(true);
   }, []);
 
+  const petPendingDeletion = useMemo(
+    () => allPets?.find((p) => p.id === petToDelete) ?? null,
+    [allPets, petToDelete]
+  );
+
   const handleConfirmDelete = useCallback(() => {
     if (petToDelete) {
       deletePetMutation.mutate(petToDelete, {
@@ -270,14 +275,26 @@ export default function PetsPage() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
+          <DialogTitle>Excluir pet?</DialogTitle>
           <DialogContent>
-            <DialogContentText>Essa ação não pode ser desfeita.</DialogContentText>
+            <DialogContentText sx={{ mb: 2 }}>
+              Você está prestes a excluir{' '}
+              <strong>{petPendingDeletion?.name ?? 'este pet'}</strong>.
+            </DialogContentText>
+            <Alert severity="warning">
+              Todas as <strong>consultas</strong> e <strong>vacinas</strong> deste pet também serão
+              excluídas. Essa ação não pode ser desfeita.
+            </Alert>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
+            <Button
+              onClick={handleConfirmDelete}
+              color="error"
+              variant="contained"
+              disabled={deletePetMutation.isPending}
+            >
+              {deletePetMutation.isPending ? 'Excluindo...' : 'Excluir'}
             </Button>
           </DialogActions>
         </Dialog>
