@@ -32,6 +32,8 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useGetPets, useDeletePet } from 'src/hooks/usePetsQuery';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -135,8 +137,12 @@ export default function PetsPage() {
           setOpenDeleteDialog(false);
           setPetToDelete(null);
         },
-        onError: () => {
-          setSnackbar({ open: true, message: 'Erro ao deletar pet', severity: 'error' });
+        onError: (error) => {
+          setSnackbar({
+            open: true,
+            message: getApiErrorMessage(error, 'Erro ao deletar pet'),
+            severity: 'error',
+          });
         },
       });
     }

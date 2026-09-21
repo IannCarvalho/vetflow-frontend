@@ -30,6 +30,8 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetClients, useDeleteClient } from 'src/hooks/useClientsQuery';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -115,8 +117,12 @@ export default function ClientesPage() {
           setOpenDeleteDialog(false);
           setClientToDelete(null);
         },
-        onError: () => {
-          setSnackbar({ open: true, message: 'Erro ao deletar cliente', severity: 'error' });
+        onError: (error) => {
+          setSnackbar({
+            open: true,
+            message: getApiErrorMessage(error, 'Erro ao deletar cliente'),
+            severity: 'error',
+          });
         },
       });
     }

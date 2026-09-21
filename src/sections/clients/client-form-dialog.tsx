@@ -5,12 +5,13 @@ import * as yup from 'yup';
  * Client Form Dialog Component
  * Modal form for creating/editing clients
  */
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -23,17 +24,29 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { useCreateClient, useUpdateClient } from 'src/hooks/useClientsQuery';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+import { maskCEP, maskCPF, maskPhone, isValidCEP, isValidCPF, isValidPhone } from 'src/utils/masks';
+
 // -----------------------------------------------------------------------
 
 const clientSchema = yup.object({
-  full_name: yup.string().required('Nome completo é obrigatório'),
-  cpf: yup.string().required('CPF é obrigatório'),
-  phone: yup.string().required('Telefone é obrigatório'),
+  full_name: yup.string().trim().required('Nome completo é obrigatório'),
+  cpf: yup
+    .string()
+    .required('CPF é obrigatório')
+    .test('valid-cpf', 'CPF inválido', (value) => isValidCPF(value ?? '')),
+  phone: yup
+    .string()
+    .required('Telefone é obrigatório')
+    .test('valid-phone', 'Telefone inválido', (value) => isValidPhone(value ?? '')),
   address: yup.object({
-    street: yup.string().required('Rua é obrigatória'),
-    number: yup.string().required('Número é obrigatório'),
+    street: yup.string().trim().required('Rua é obrigatória'),
+    number: yup.string().trim().required('Número é obrigatório'),
     complement: yup.string(),
-    zip_code: yup.string().required('CEP é obrigatório'),
+    zip_code: yup
+      .string()
+      .required('CEP é obrigatório')
+      .test('valid-cep', 'CEP inválido', (value) => isValidCEP(value ?? '')),
   }),
 });
 
@@ -52,6 +65,8 @@ export default function ClientFormDialog({
 }: ClientFormDialogProps) {
   const createClientMutation = useCreateClient();
   const updateClientMutation = useUpdateClient();
+
+  const [submitError, setSubmitError] = useState('');
 
   const {
     control,
@@ -74,6 +89,7 @@ export default function ClientFormDialog({
   });
 
   useEffect(() => {
+    setSubmitError('');
     if (client) {
       reset(client);
     } else {
@@ -94,6 +110,7 @@ export default function ClientFormDialog({
   const isLoading = createClientMutation.isPending || updateClientMutation.isPending;
 
   const onSubmit = handleSubmit((data: any) => {
+    setSubmitError('');
     if (client) {
       updateClientMutation.mutate(
         { id: client.id, data },
@@ -102,6 +119,8 @@ export default function ClientFormDialog({
             onSuccess?.('Cliente atualizado com sucesso!');
             reset();
           },
+          onError: (error) =>
+            setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar cliente')),
         }
       );
     } else {
@@ -110,6 +129,7 @@ export default function ClientFormDialog({
           onSuccess?.('Cliente criado com sucesso!');
           reset();
         },
+        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar cliente')),
       });
     }
   });
@@ -120,6 +140,11 @@ export default function ClientFormDialog({
       <DialogContent>
         <Box sx={{ pt: 2 }}>
           <Stack spacing={2}>
+            {submitError && (
+              <Alert severity="error" onClose={() => setSubmitError('')}>
+                {submitError}
+              </Alert>
+            )}
             <Controller
               name="full_name"
               control={control}
@@ -140,7 +165,9 @@ export default function ClientFormDialog({
               render={({ field }) => (
                 <TextField
                   {...field}
+                  onChange={(e) => field.onChange(maskCPF(e.target.value))}
                   label="CPF"
+                  placeholder="000.000.000-00"
                   fullWidth
                   error={!!errors.cpf}
                   helperText={errors.cpf?.message}
@@ -154,7 +181,9 @@ export default function ClientFormDialog({
               render={({ field }) => (
                 <TextField
                   {...field}
+                  onChange={(e) => field.onChange(maskPhone(e.target.value))}
                   label="Telefone"
+                  placeholder="(00) 00000-0000"
                   fullWidth
                   error={!!errors.phone}
                   helperText={errors.phone?.message}
@@ -211,7 +240,9 @@ export default function ClientFormDialog({
               render={({ field }) => (
                 <TextField
                   {...field}
+                  onChange={(e) => field.onChange(maskCEP(e.target.value))}
                   label="CEP"
+                  placeholder="00000-000"
                   fullWidth
                   error={!!errors.address?.zip_code}
                   helperText={errors.address?.zip_code?.message}

@@ -30,6 +30,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useGetConsultations, useDeleteConsultation } from 'src/hooks/useConsultationsQuery';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -102,8 +104,12 @@ export default function ConsultasPage() {
         setOpenDeleteDialog(false);
         setConsultationToDelete(null);
       },
-      onError: () => {
-        setSnackbar({ open: true, message: 'Erro ao deletar consulta', severity: 'error' });
+      onError: (error) => {
+        setSnackbar({
+          open: true,
+          message: getApiErrorMessage(error, 'Erro ao deletar consulta'),
+          severity: 'error',
+        });
       },
     });
   }, [consultationToDelete, deleteConsultationMutation]);
