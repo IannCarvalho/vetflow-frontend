@@ -3,14 +3,14 @@
  *
  * Configures the HTTP client for communication with the VetFlow backend.
  * Automatically detects production vs development environment.
- * Production backend: https://vetflow-backend-1oey.onrender.com (Render)
+ * Production backend: https://vetflow-backend-jn55.onrender.com (Render)
  * Development backend: http://localhost:8080 (Local)
  * 
  * Auto-detection: If hostname is not 'localhost', uses production URL
  */
 import axios from 'axios';
 
-const PRODUCTION_API_URL = 'https://vetflow-backend-1oey.onrender.com';
+const PRODUCTION_API_URL = 'https://vetflow-backend-jn55.onrender.com';
 const DEVELOPMENT_API_URL = 'http://localhost:8080';
 
 // Resolve the backend URL in this order:
