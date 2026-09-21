@@ -11,6 +11,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import Box from '@mui/material/Box';
 import Step from '@mui/material/Step';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -25,6 +26,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useCreateConsultation, useUpdateConsultation } from 'src/hooks/useConsultationsQuery';
+
+import { getApiErrorMessage } from 'src/utils/api-error';
 
 // -----------------------------------------------------------------------
 
@@ -75,6 +78,7 @@ export default function ConsultationFormDialog({
   initialData,
 }: ConsultationFormDialogProps) {
   const [activeStep, setActiveStep] = useState(0);
+  const [submitError, setSubmitError] = useState('');
   const createConsultationMutation = useCreateConsultation();
   const updateConsultationMutation = useUpdateConsultation();
 
@@ -164,6 +168,7 @@ export default function ConsultationFormDialog({
       });
     }
     setActiveStep(0);
+    setSubmitError('');
   }, [consultation, initialData, reset, open]);
 
   const isLoading = createConsultationMutation.isPending || updateConsultationMutation.isPending;
@@ -181,10 +186,11 @@ export default function ConsultationFormDialog({
   };
 
   const onSubmit = handleSubmit((data: any) => {
+    setSubmitError('');
     const petId = consultation?.pet_id || initialData?.pet_id;
 
     if (!petId) {
-      console.error('Pet ID is required');
+      setSubmitError('Não foi possível identificar o pet desta consulta.');
       return;
     }
 
@@ -233,6 +239,7 @@ export default function ConsultationFormDialog({
             reset();
             setActiveStep(0);
           },
+          onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar consulta')),
         }
       );
     } else {
@@ -242,6 +249,7 @@ export default function ConsultationFormDialog({
           reset();
           setActiveStep(0);
         },
+        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar consulta')),
       });
     }
   });
@@ -604,6 +612,12 @@ export default function ConsultationFormDialog({
           </Stepper>
 
           {renderStepContent()}
+
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setSubmitError('')}>
+              {submitError}
+            </Alert>
+          )}
         </Box>
       </DialogContent>
       <DialogActions>
