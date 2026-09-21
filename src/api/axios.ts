@@ -41,26 +41,15 @@ const axiosInstance = axios.create({
   },
 });
 
-// Add request interceptor to include authentication token
+// Add request interceptor to include the JWT.
+// The backend derives the user identity from the token itself, so no
+// client-provided user id header is sent (that would be spoofable).
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
-    const user = localStorage.getItem('auth_user');
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    // Add user ID header for protected routes
-    if (user) {
-      try {
-        const userData = JSON.parse(user);
-        if (userData.id) {
-          config.headers['X-User-ID'] = userData.id;
-        }
-      } catch (e) {
-        // Failed to parse user data, continue without user ID
-      }
     }
 
     return config;
