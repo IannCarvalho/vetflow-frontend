@@ -32,6 +32,8 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useGetVaccines, useDeleteVaccine } from 'src/hooks/useVaccinesQuery';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -147,8 +149,12 @@ export default function VacinasPage() {
         setOpenDeleteDialog(false);
         setVaccineToDelete(null);
       },
-      onError: () => {
-        setSnackbar({ open: true, message: 'Erro ao deletar vacinação', severity: 'error' });
+      onError: (error) => {
+        setSnackbar({
+          open: true,
+          message: getApiErrorMessage(error, 'Erro ao deletar vacinação'),
+          severity: 'error',
+        });
       },
     });
   }, [vaccineToDelete, deleteVaccineMutation]);
