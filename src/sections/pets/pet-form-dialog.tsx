@@ -5,11 +5,12 @@ import * as yup from 'yup';
  * Pet Form Dialog Component
  * Modal form for creating/editing pets
  */
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -27,17 +28,30 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { useCreatePet, useUpdatePet } from 'src/hooks/usePetsQuery';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 // -----------------------------------------------------------------------
 
 const petSchema = yup.object({
-  name: yup.string().required('Nome do pet é obrigatório'),
+  name: yup.string().trim().required('Nome do pet é obrigatório'),
   species: yup.string().required('Espécie é obrigatória'),
   breed: yup.string(),
-  age: yup.number().required('Idade é obrigatória').positive('Idade deve ser positiva'),
+  age: yup
+    .number()
+    .typeError('Idade deve ser um número')
+    .required('Idade é obrigatória')
+    .integer('Idade deve ser um número inteiro')
+    .min(0, 'Idade não pode ser negativa')
+    .max(600, 'Idade inválida'),
   age_unit: yup.string().oneOf(['months', 'years']),
   sex: yup.string().oneOf(['male', 'female']).required('Sexo é obrigatório'),
   neutered: yup.boolean(),
-  weight: yup.number().required('Peso é obrigatório').positive('Peso deve ser positivo'),
+  weight: yup
+    .number()
+    .typeError('Peso deve ser um número')
+    .required('Peso é obrigatório')
+    .positive('Peso deve ser positivo')
+    .max(200, 'Peso inválido'),
 });
 
 interface PetFormDialogProps {
@@ -57,6 +71,8 @@ export default function PetFormDialog({
 }: PetFormDialogProps) {
   const createPetMutation = useCreatePet();
   const updatePetMutation = useUpdatePet();
+
+  const [submitError, setSubmitError] = useState('');
 
   const {
     control,
@@ -78,6 +94,7 @@ export default function PetFormDialog({
   });
 
   useEffect(() => {
+    setSubmitError('');
     if (pet) {
       reset(pet);
     } else {
@@ -97,6 +114,7 @@ export default function PetFormDialog({
   const isLoading = createPetMutation.isPending || updatePetMutation.isPending;
 
   const onSubmit = handleSubmit((data: any) => {
+    setSubmitError('');
     if (pet) {
       updatePetMutation.mutate(
         { id: pet.id, data },
@@ -105,6 +123,7 @@ export default function PetFormDialog({
             onSuccess?.('Pet atualizado com sucesso!');
             reset();
           },
+          onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar pet')),
         }
       );
     } else {
@@ -113,6 +132,7 @@ export default function PetFormDialog({
           onSuccess?.('Pet criado com sucesso!');
           reset();
         },
+        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar pet')),
       });
     }
   });
@@ -123,6 +143,11 @@ export default function PetFormDialog({
       <DialogContent>
         <Box sx={{ pt: 2 }}>
           <Stack spacing={2}>
+            {submitError && (
+              <Alert severity="error" onClose={() => setSubmitError('')}>
+                {submitError}
+              </Alert>
+            )}
             <Controller
               name="name"
               control={control}
