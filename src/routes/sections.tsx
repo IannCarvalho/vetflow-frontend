@@ -22,6 +22,8 @@ export const ClientPetsPage = lazy(() => import('src/pages/client-pets'));
 export const PetsPage = lazy(() => import('src/pages/pets'));
 export const PetVacinasPage = lazy(() => import('src/pages/pet-vacinas'));
 export const PetConsultasPage = lazy(() => import('src/pages/pet-consultas'));
+export const VacinasPage = lazy(() => import('src/pages/vacinas'));
+export const ConsultasPage = lazy(() => import('src/pages/consultas'));
 export const AccountPage = lazy(() => import('src/pages/account'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
@@ -90,6 +92,8 @@ export const routesSection: RouteObject[] = [
       { path: 'pets', element: <PetsPage /> },
       { path: 'pets/:petId/vacinas', element: <PetVacinasPage /> },
       { path: 'pets/:petId/consultas', element: <PetConsultasPage /> },
+      { path: 'vacinas', element: <VacinasPage /> },
+      { path: 'consultas', element: <ConsultasPage /> },
       { path: 'account', element: <AccountPage /> },
     ],
   },

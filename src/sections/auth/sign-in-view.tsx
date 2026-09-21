@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -37,11 +38,29 @@ export function SignInView() {
     try {
       setLoginError('');
       setLoading(true);
-      await login(email, password);
+      // Normalize inputs: the backend matches email exactly (case/space sensitive).
+      await login(email.trim().toLowerCase(), password);
       router.push('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
-      setLoginError('Email ou senha inválidos');
+
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // Server responded with an error status (e.g. 401 = wrong credentials)
+          setLoginError(
+            error.response.status === 401
+              ? 'Email ou senha inválidos'
+              : `Erro do servidor (${error.response.status})`
+          );
+        } else {
+          // No response: server unreachable / network / CORS
+          setLoginError(
+            `Não foi possível conectar ao servidor (${error.config?.baseURL ?? 'URL desconhecida'}). Verifique se o backend está no ar.`
+          );
+        }
+      } else {
+        setLoginError('Ocorreu um erro inesperado ao entrar');
+      }
     } finally {
       setLoading(false);
     }
@@ -85,8 +104,15 @@ export function SignInView() {
         fullWidth
         name="email"
         label="Endereço de email"
+        type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        inputProps={{
+          autoCapitalize: 'none',
+          autoCorrect: 'off',
+          spellCheck: false,
+          inputMode: 'email',
+        }}
         sx={{ mb: 3 }}
       />
 
@@ -116,7 +142,7 @@ export function SignInView() {
       <Button
         fullWidth
         size="large"
-        type="submit"
+        type="button"
         color="inherit"
         variant="contained"
         onClick={handleSignIn}
