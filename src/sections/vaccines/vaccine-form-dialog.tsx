@@ -5,11 +5,12 @@ import * as yup from 'yup';
  * Vaccine Form Dialog Component
  * Modal form for creating/editing vaccine records
  */
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
@@ -20,6 +21,8 @@ import DialogActions from '@mui/material/DialogActions';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useCreateVaccine, useUpdateVaccine } from 'src/hooks/useVaccinesQuery';
+
+import { getApiErrorMessage } from 'src/utils/api-error';
 
 // -----------------------------------------------------------------------
 
@@ -50,6 +53,8 @@ export default function VaccineFormDialog({
   const createVaccineMutation = useCreateVaccine();
   const updateVaccineMutation = useUpdateVaccine();
 
+  const [submitError, setSubmitError] = useState('');
+
   const {
     control,
     handleSubmit,
@@ -68,6 +73,7 @@ export default function VaccineFormDialog({
   });
 
   useEffect(() => {
+    setSubmitError('');
     if (vaccine) {
       reset(vaccine);
     } else {
@@ -85,10 +91,11 @@ export default function VaccineFormDialog({
   const isLoading = createVaccineMutation.isPending || updateVaccineMutation.isPending;
 
   const onSubmit = handleSubmit((data: any) => {
+    setSubmitError('');
     const petId = vaccine?.pet_id || initialData?.pet_id;
 
     if (!petId) {
-      console.error('Pet ID is required');
+      setSubmitError('Não foi possível identificar o pet desta vacinação.');
       return;
     }
 
@@ -107,6 +114,7 @@ export default function VaccineFormDialog({
             onSuccess?.('Vacinação atualizada com sucesso!');
             reset();
           },
+          onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar vacinação')),
         }
       );
     } else {
@@ -115,6 +123,7 @@ export default function VaccineFormDialog({
           onSuccess?.('Vacinação criada com sucesso!');
           reset();
         },
+        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar vacinação')),
       });
     }
   });
@@ -125,6 +134,11 @@ export default function VaccineFormDialog({
       <DialogContent>
         <Box sx={{ pt: 2 }}>
           <Stack spacing={2}>
+            {submitError && (
+              <Alert severity="error" onClose={() => setSubmitError('')}>
+                {submitError}
+              </Alert>
+            )}
             <Controller
               name="vaccine_name"
               control={control}
