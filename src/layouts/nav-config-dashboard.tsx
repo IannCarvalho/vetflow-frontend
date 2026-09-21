@@ -26,6 +26,11 @@ export const navData = [
     icon: <Icon icon="mdi:paw" width={24} height={24} />,
   },
   {
+    title: 'Consultas',
+    path: '/consultas',
+    icon: <Icon icon="mdi:stethoscope" width={24} height={24} />,
+  },
+  {
     title: 'Vacinas',
     path: '/vacinas',
     icon: <Icon icon="mdi:needle" width={24} height={24} />,
