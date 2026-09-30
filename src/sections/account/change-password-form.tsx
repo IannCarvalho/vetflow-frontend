@@ -14,9 +14,11 @@ interface ChangePasswordFormProps {
 export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps) {
   const [loading, setLoading] = useState(false);
   const [successDisabled, setSuccessDisabled] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
@@ -25,6 +27,7 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
   // Reset form data and success state when needed
   useEffect(() => {
     setFormData({
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     });
@@ -51,6 +54,9 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    if (!formData.currentPassword.trim()) {
+      newErrors.currentPassword = 'Senha atual é obrigatória';
+    }
     if (!formData.newPassword.trim()) {
       newErrors.newPassword = 'Nova senha é obrigatória';
     }
@@ -79,11 +85,13 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
       setLoading(true);
       try {
         await usersApi.changePassword({
+          current_password: formData.currentPassword,
           new_password: formData.newPassword,
         });
 
         // Clear form
         setFormData({
+          currentPassword: '',
           newPassword: '',
           confirmPassword: '',
         });
@@ -96,7 +104,7 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
         onUpdateSuccess?.();
       } catch (error: any) {
         console.error('Error changing password:', error);
-        const errorMsg = error.response?.data?.message || '';
+        const errorMsg = error.response?.data?.error || error.response?.data?.message || '';
         alert('Erro ao atualizar senha: ' + (errorMsg || 'Tente novamente'));
       } finally {
         setLoading(false);
@@ -108,6 +116,32 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={2.5}>
+        <TextField
+          fullWidth
+          label="Senha Atual"
+          type={showCurrentPassword ? 'text' : 'password'}
+          name="currentPassword"
+          value={formData.currentPassword}
+          onChange={handleChange}
+          error={!!errors.currentPassword}
+          helperText={errors.currentPassword}
+          placeholder="Digite sua senha atual"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  edge="end"
+                >
+                  <Iconify
+                    icon={showCurrentPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                  />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
         <TextField
           fullWidth
           label="Nova Senha"
