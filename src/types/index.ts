@@ -175,6 +175,40 @@ export interface Prescription {
 }
 
 /**
+ * Catalog item type - service or stockable product
+ */
+export type CatalogItemType = 'service' | 'product';
+
+/**
+ * CatalogItem interface - a billable service or a stockable product
+ *
+ * @property id - Unique identifier
+ * @property type - 'service' or 'product'
+ * @property name - Item name
+ * @property description - Optional description
+ * @property price - Unit price
+ * @property unit - Unit label (un, ml, cx...)
+ * @property stock_quantity - Current stock (products only)
+ * @property min_stock - Minimum-stock threshold (products only)
+ * @property active - Whether the item is active/available
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface CatalogItem {
+  id: string;
+  type: CatalogItemType;
+  name: string;
+  description?: string;
+  price: number;
+  unit?: string;
+  stock_quantity: number;
+  min_stock: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * API Response wrapper for consistent error handling
  */
 export interface ApiResponse<T> {
