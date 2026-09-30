@@ -40,4 +40,9 @@ export const navData = [
     path: '/catalogo',
     icon: <Icon icon="mdi:tag-multiple" width={24} height={24} />,
   },
+  {
+    title: 'Financeiro',
+    path: '/financeiro',
+    icon: <Icon icon="mdi:cash-multiple" width={24} height={24} />,
+  },
 ];
