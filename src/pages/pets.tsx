@@ -126,6 +126,13 @@ export default function PetsPage() {
     [navigate]
   );
 
+  const handleViewAttachments = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/anexos`);
+    },
+    [navigate]
+  );
+
   const handleDeleteClick = useCallback((petId: string) => {
     setPetToDelete(petId);
     setOpenDeleteDialog(true);
@@ -265,6 +272,15 @@ export default function PetsPage() {
                             <Iconify icon="solar:document-text-bold" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Ver Anexos">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewAttachments(pet.id)}
+                            color="info"
+                          >
+                            <Iconify icon="solar:paperclip-bold" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Deletar">
                           <IconButton
                             size="small"
@@ -305,8 +321,8 @@ export default function PetsPage() {
             </DialogContentText>
             <Alert severity="warning">
               Todas as <strong>consultas</strong>, <strong>vacinas</strong> e{' '}
-              <strong>receitas</strong> deste pet também serão excluídas. Essa ação não pode ser
-              desfeita.
+<strong>receitas</strong> e <strong>anexos</strong> deste pet também serão excluídas. Essa
+              ação não pode ser desfeita.
             </Alert>
           </DialogContent>
           <DialogActions>

@@ -265,6 +265,27 @@ export interface Invoice {
 }
 
 /**
+ * Attachment category in the pet's medical record
+ */
+export type AttachmentCategory = 'exam' | 'image' | 'report' | 'document';
+
+/**
+ * Attachment summary - metadata without the heavy base64 content (for listing)
+ */
+export interface AttachmentSummary {
+  id: string;
+  pet_id: string;
+  consultation_id?: string;
+  name: string;
+  category: AttachmentCategory;
+  mime_type: string;
+  notes?: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * Appointment types and statuses - aligned with the Go backend (models/appointment.go)
  */
 export type AppointmentType =
@@ -310,6 +331,13 @@ export interface Appointment {
   notes?: string;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Attachment - full record including the base64 content (for download/preview)
+ */
+export interface Attachment extends AttachmentSummary {
+  content: string;
 }
 
 /**
