@@ -119,6 +119,13 @@ export default function PetsPage() {
     [navigate]
   );
 
+  const handleViewPrescriptions = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/receitas`);
+    },
+    [navigate]
+  );
+
   const handleDeleteClick = useCallback((petId: string) => {
     setPetToDelete(petId);
     setOpenDeleteDialog(true);
@@ -249,6 +256,15 @@ export default function PetsPage() {
                             <Iconify icon="solar:vaccine-bold" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Ver Receitas">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewPrescriptions(pet.id)}
+                            color="info"
+                          >
+                            <Iconify icon="solar:document-text-bold" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Deletar">
                           <IconButton
                             size="small"
@@ -288,8 +304,9 @@ export default function PetsPage() {
               <strong>{petPendingDeletion?.name ?? 'este pet'}</strong>.
             </DialogContentText>
             <Alert severity="warning">
-              Todas as <strong>consultas</strong> e <strong>vacinas</strong> deste pet também serão
-              excluídas. Essa ação não pode ser desfeita.
+              Todas as <strong>consultas</strong>, <strong>vacinas</strong> e{' '}
+              <strong>receitas</strong> deste pet também serão excluídas. Essa ação não pode ser
+              desfeita.
             </Alert>
           </DialogContent>
           <DialogActions>
