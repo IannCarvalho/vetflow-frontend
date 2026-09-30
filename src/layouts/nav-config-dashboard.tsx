@@ -16,6 +16,11 @@ export const navData = [
     icon: <Icon icon="mdi:chart-line" width={24} height={24} />,
   },
   {
+    title: 'Agenda',
+    path: '/agenda',
+    icon: <Icon icon="mdi:calendar-clock" width={24} height={24} />,
+  },
+  {
     title: 'Clientes',
     path: '/clientes',
     icon: <Icon icon="mdi:account-multiple" width={24} height={24} />,

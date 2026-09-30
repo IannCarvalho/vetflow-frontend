@@ -17,6 +17,7 @@ import { ProtectedRoute } from './protected-route';
 // ----------------------------------------------------------------------
 
 export const DashboardPage = lazy(() => import('src/pages/dashboard-vetflow'));
+export const AgendaPage = lazy(() => import('src/pages/agenda'));
 export const ClientesPage = lazy(() => import('src/pages/clientes'));
 export const ClientPetsPage = lazy(() => import('src/pages/client-pets'));
 export const PetsPage = lazy(() => import('src/pages/pets'));
@@ -90,6 +91,7 @@ export const routesSection: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'agenda', element: <AgendaPage /> },
       { path: 'clientes', element: <ClientesPage /> },
       { path: 'clientes/:clientId/pets', element: <ClientPetsPage /> },
       { path: 'pets', element: <PetsPage /> },
