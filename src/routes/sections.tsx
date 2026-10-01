@@ -29,6 +29,7 @@ export const VacinasPage = lazy(() => import('src/pages/vacinas'));
 export const ConsultasPage = lazy(() => import('src/pages/consultas'));
 export const CatalogoPage = lazy(() => import('src/pages/catalogo'));
 export const FinanceiroPage = lazy(() => import('src/pages/financeiro'));
+export const FinanceiroDashboardPage = lazy(() => import('src/pages/financeiro-dashboard'));
 export const AccountPage = lazy(() => import('src/pages/account'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
@@ -104,6 +105,7 @@ export const routesSection: RouteObject[] = [
       { path: 'consultas', element: <ConsultasPage /> },
       { path: 'catalogo', element: <CatalogoPage /> },
       { path: 'financeiro', element: <FinanceiroPage /> },
+      { path: 'financeiro/painel', element: <FinanceiroDashboardPage /> },
       { path: 'account', element: <AccountPage /> },
     ],
   },
