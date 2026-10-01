@@ -140,6 +140,41 @@ export interface Vaccine {
 }
 
 /**
+ * Prescription item - a single medication line in a prescription
+ */
+export interface PrescriptionItem {
+  medication: string;
+  dosage: string;
+  route: string;
+  frequency: string;
+  duration: string;
+  instructions: string;
+}
+
+/**
+ * Prescription interface - Represents a veterinary prescription (receituário)
+ *
+ * @property id - Unique identifier
+ * @property pet_id - Reference to Pet
+ * @property consultation_id - Reference to a Consultation (optional)
+ * @property date - ISO date of the prescription
+ * @property items - Medication lines
+ * @property general_notes - Free-form notes shown at the bottom of the receituário
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface Prescription {
+  id: string;
+  pet_id: string;
+  consultation_id?: string;
+  date: string;
+  items: PrescriptionItem[];
+  general_notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * API Response wrapper for consistent error handling
  */
 export interface ApiResponse<T> {
