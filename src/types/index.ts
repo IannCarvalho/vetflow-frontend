@@ -209,6 +209,62 @@ export interface CatalogItem {
 }
 
 /**
+ * Invoice payment status and method - aligned with the Go backend (models/invoice.go)
+ */
+export type PaymentStatus = 'pending' | 'paid' | 'partial' | 'overdue' | 'canceled';
+
+export type PaymentMethod = '' | 'cash' | 'card' | 'pix' | 'transfer' | 'boleto';
+
+/**
+ * Invoice item - a single billable line
+ */
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+/**
+ * Invoice interface - Represents a billing document (financeiro)
+ *
+ * @property id - Unique identifier
+ * @property client_id - Reference to Client
+ * @property pet_id - Reference to Pet (optional)
+ * @property consultation_id - Reference to Consultation (optional)
+ * @property items - Billable line items
+ * @property subtotal - Sum of item totals (server-computed)
+ * @property discount - Discount applied
+ * @property total - Final amount (server-computed)
+ * @property status - Payment status
+ * @property method - Payment method (optional)
+ * @property issue_date - ISO date the invoice was issued
+ * @property due_date - ISO due date (optional)
+ * @property paid_at - ISO timestamp when marked paid (optional)
+ * @property notes - Additional notes
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface Invoice {
+  id: string;
+  client_id: string;
+  pet_id?: string;
+  consultation_id?: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  status: PaymentStatus;
+  method?: PaymentMethod;
+  issue_date: string;
+  due_date?: string;
+  paid_at?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * API Response wrapper for consistent error handling
  */
 export interface ApiResponse<T> {
