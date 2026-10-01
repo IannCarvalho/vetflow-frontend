@@ -6,6 +6,7 @@ interface UpdateProfileData {
 }
 
 interface ChangePasswordData {
+  current_password: string;
   new_password: string;
 }
 
