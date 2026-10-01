@@ -25,6 +25,7 @@ export const PetVacinasPage = lazy(() => import('src/pages/pet-vacinas'));
 export const PetConsultasPage = lazy(() => import('src/pages/pet-consultas'));
 export const PetReceitasPage = lazy(() => import('src/pages/pet-receitas'));
 export const PetAnexosPage = lazy(() => import('src/pages/pet-anexos'));
+export const PetProntuarioPage = lazy(() => import('src/pages/pet-prontuario'));
 export const VacinasPage = lazy(() => import('src/pages/vacinas'));
 export const ConsultasPage = lazy(() => import('src/pages/consultas'));
 export const CatalogoPage = lazy(() => import('src/pages/catalogo'));
@@ -101,6 +102,7 @@ export const routesSection: RouteObject[] = [
       { path: 'pets/:petId/consultas', element: <PetConsultasPage /> },
       { path: 'pets/:petId/receitas', element: <PetReceitasPage /> },
       { path: 'pets/:petId/anexos', element: <PetAnexosPage /> },
+      { path: 'pets/:petId/prontuario', element: <PetProntuarioPage /> },
       { path: 'vacinas', element: <VacinasPage /> },
       { path: 'consultas', element: <ConsultasPage /> },
       { path: 'catalogo', element: <CatalogoPage /> },

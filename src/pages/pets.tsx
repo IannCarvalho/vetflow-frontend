@@ -133,6 +133,13 @@ export default function PetsPage() {
     [navigate]
   );
 
+  const handleViewProntuario = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/prontuario`);
+    },
+    [navigate]
+  );
+
   const handleDeleteClick = useCallback((petId: string) => {
     setPetToDelete(petId);
     setOpenDeleteDialog(true);
@@ -240,6 +247,15 @@ export default function PetsPage() {
                       <TableCell>{pet.sex === 'male' ? 'Macho' : 'Fêmea'}</TableCell>
                       <TableCell>{clientNameMap[pet.owner_id] || 'N/A'}</TableCell>
                       <TableCell align="right">
+                        <Tooltip title="Prontuário">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewProntuario(pet.id)}
+                            color="primary"
+                          >
+                            <Iconify icon="solar:clipboard-heart-bold" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Editar">
                           <IconButton size="small" onClick={() => handleEditPet(pet)}>
                             <Iconify icon="solar:pen-bold" />
