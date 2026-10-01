@@ -35,4 +35,9 @@ export const navData = [
     path: '/vacinas',
     icon: <Icon icon="mdi:needle" width={24} height={24} />,
   },
+  {
+    title: 'Catálogo',
+    path: '/catalogo',
+    icon: <Icon icon="mdi:tag-multiple" width={24} height={24} />,
+  },
 ];
