@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
+import { GlobalSearch } from 'src/components/global-search/global-search';
 import { NotificationsCenter } from 'src/components/notifications-center';
 
 import { NavMobile, NavDesktop } from './nav';
@@ -68,6 +69,9 @@ export function DashboardLayout({
             sx={{ mr: 1, ml: -1, [theme.breakpoints.up(layoutQuery)]: { display: 'none' } }}
           />
           <NavMobile data={navData} open={open} onClose={onClose} />
+
+          {/** @slot Global search */}
+          <GlobalSearch />
         </>
       ),
       rightArea: (
