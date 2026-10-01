@@ -265,6 +265,54 @@ export interface Invoice {
 }
 
 /**
+ * Appointment types and statuses - aligned with the Go backend (models/appointment.go)
+ */
+export type AppointmentType =
+  | 'consultation'
+  | 'vaccine'
+  | 'return'
+  | 'surgery'
+  | 'exam'
+  | 'grooming'
+  | 'other';
+
+export type AppointmentStatus =
+  | 'scheduled'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
+
+/**
+ * Appointment interface - Represents a scheduled visit in the agenda/calendar
+ *
+ * @property id - Unique identifier
+ * @property pet_id - Reference to Pet
+ * @property client_id - Reference to Client (optional)
+ * @property title - Short label for the appointment
+ * @property type - Kind of appointment
+ * @property status - Lifecycle status
+ * @property start_time - ISO timestamp of the appointment start
+ * @property end_time - ISO timestamp of the appointment end (optional)
+ * @property notes - Additional notes (optional)
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface Appointment {
+  id: string;
+  pet_id: string;
+  client_id?: string;
+  title: string;
+  type: AppointmentType;
+  status: AppointmentStatus;
+  start_time: string;
+  end_time?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * API Response wrapper for consistent error handling
  */
 export interface ApiResponse<T> {
