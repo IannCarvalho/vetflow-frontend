@@ -14,6 +14,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -25,7 +26,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
+import TablePagination from '@mui/material/TablePagination';
 
 import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useGetConsultations, useDeleteConsultation } from 'src/hooks/useConsultationsQuery';
@@ -48,10 +49,12 @@ export default function ConsultasPage() {
   const deleteConsultationMutation = useDeleteConsultation();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openReportDialog, setOpenReportDialog] = useState(false);
-  // Report dialog defines its own Consultation shape; use a loose type to match
-  // the existing pet-consultas page and avoid structural type friction.
-  const [selectedConsultation, setSelectedConsultation] = useState<any>(null);
+  // The report dialog declares its own (narrower) Consultation shape, which is a
+  // structural subset of the shared Consultation type, so this value is assignable.
+  const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [consultationToDelete, setConsultationToDelete] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{
@@ -85,6 +88,12 @@ export default function ConsultasPage() {
     // getPetName depends on petNameById, covered by allPets.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allConsultations, searchTerm, petNameById]);
+
+  // Current page slice of the already-filtered list (pagination is client-side)
+  const paginatedConsultations = useMemo(
+    () => visibleConsultations.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [visibleConsultations, page, rowsPerPage]
+  );
 
   const handleViewReport = useCallback((consultation: Consultation) => {
     setSelectedConsultation(consultation);
@@ -127,21 +136,53 @@ export default function ConsultasPage() {
         <TextField
           placeholder="Buscar por queixa ou pet..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(0);
+          }}
           fullWidth
           sx={{ mb: 3 }}
-          InputProps={{
-            startAdornment: (
-              <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
+              ),
+            },
           }}
         />
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
+                    <TableCell>Data</TableCell>
+                    <TableCell>Pet</TableCell>
+                    <TableCell>Queixa Principal</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : visibleConsultations.length > 0 ? (
             <TableContainer>
               <Table>
@@ -154,7 +195,7 @@ export default function ConsultasPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {visibleConsultations.map((c) => (
+                  {paginatedConsultations.map((c) => (
                     <TableRow key={c.id} hover>
                       <TableCell>{new Date(c.date).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>{getPetName(c.pet_id)}</TableCell>
@@ -187,6 +228,20 @@ export default function ConsultasPage() {
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={visibleConsultations.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage="Linhas por página:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+              />
             </TableContainer>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>

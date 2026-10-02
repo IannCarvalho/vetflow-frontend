@@ -15,6 +15,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -26,7 +27,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
+import TablePagination from '@mui/material/TablePagination';
 
 import { useGetCatalogItems, useDeleteCatalogItem } from 'src/hooks/useCatalogQuery';
 
@@ -60,6 +61,8 @@ export default function CatalogoPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterValue>('all');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openForm, setOpenForm] = useState(false);
   const [toEdit, setToEdit] = useState<CatalogItem | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -87,6 +90,12 @@ export default function CatalogoPage() {
 
     return result;
   }, [items, filter, searchTerm]);
+
+  // Current page slice of the already-filtered list (pagination is client-side)
+  const paginatedItems = useMemo(
+    () => visible.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [visible, page, rowsPerPage]
+  );
 
   const handleNew = useCallback(() => {
     setToEdit(null);
@@ -154,13 +163,18 @@ export default function CatalogoPage() {
         <TextField
           placeholder="Buscar por nome ou descrição..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(0);
+          }}
           fullWidth
           sx={{ mb: 3 }}
-          InputProps={{
-            startAdornment: (
-              <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
+              ),
+            },
           }}
         />
 
@@ -169,7 +183,10 @@ export default function CatalogoPage() {
             <Chip
               key={option.value}
               label={option.label}
-              onClick={() => setFilter(option.value)}
+              onClick={() => {
+                setFilter(option.value);
+                setPage(0);
+              }}
               color={filter === option.value ? 'primary' : 'default'}
               variant={filter === option.value ? 'filled' : 'outlined'}
             />
@@ -178,9 +195,44 @@ export default function CatalogoPage() {
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell align="right">Preço</TableCell>
+                    <TableCell align="right">Estoque</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : visible.length > 0 ? (
             <TableContainer>
               <Table>
@@ -195,7 +247,7 @@ export default function CatalogoPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {visible.map((item) => {
+                  {paginatedItems.map((item) => {
                     const lowStock =
                       item.type === 'product' &&
                       item.min_stock > 0 &&
@@ -255,6 +307,20 @@ export default function CatalogoPage() {
                   })}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={visible.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage="Linhas por página:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+              />
             </TableContainer>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>

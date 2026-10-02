@@ -16,6 +16,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -27,7 +28,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
+import TablePagination from '@mui/material/TablePagination';
 
 import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useGetInvoices, useDeleteInvoice } from 'src/hooks/useInvoicesQuery';
@@ -78,6 +79,8 @@ export default function FinanceiroPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | PaymentStatus>('all');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openForm, setOpenForm] = useState(false);
   const [toEdit, setToEdit] = useState<Invoice | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -124,6 +127,13 @@ export default function FinanceiroPage() {
 
     return result;
   }, [invoices, filter, searchTerm, getClientName]);
+
+  // Current page slice of the already-filtered list (pagination is client-side).
+  // The summary cards above intentionally aggregate the full invoices list, not this slice.
+  const paginatedInvoices = useMemo(
+    () => visible.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [visible, page, rowsPerPage]
+  );
 
   const handleNew = useCallback(() => {
     setToEdit(null);
@@ -203,13 +213,18 @@ export default function FinanceiroPage() {
         <TextField
           placeholder="Buscar por cliente..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(0);
+          }}
           fullWidth
           sx={{ mb: 3 }}
-          InputProps={{
-            startAdornment: (
-              <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
+              ),
+            },
           }}
         />
 
@@ -218,7 +233,10 @@ export default function FinanceiroPage() {
             <Chip
               key={option.value}
               label={option.label}
-              onClick={() => setFilter(option.value)}
+              onClick={() => {
+                setFilter(option.value);
+                setPage(0);
+              }}
               color={filter === option.value ? 'primary' : 'default'}
               variant={filter === option.value ? 'filled' : 'outlined'}
             />
@@ -227,9 +245,44 @@ export default function FinanceiroPage() {
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
+                    <TableCell>Cliente</TableCell>
+                    <TableCell>Emissão</TableCell>
+                    <TableCell>Itens</TableCell>
+                    <TableCell align="right">Total</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : visible.length > 0 ? (
             <TableContainer>
               <Table>
@@ -244,7 +297,7 @@ export default function FinanceiroPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {visible.map((invoice) => (
+                  {paginatedInvoices.map((invoice) => (
                     <TableRow key={invoice.id} hover>
                       <TableCell>{getClientName(invoice.client_id)}</TableCell>
                       <TableCell>
@@ -283,6 +336,20 @@ export default function FinanceiroPage() {
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={visible.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage="Linhas por página:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+              />
             </TableContainer>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
