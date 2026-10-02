@@ -72,9 +72,9 @@ export function NotificationsCenter() {
     return varAlpha(theme.vars.palette.success.mainChannel, 0.16);
   };
 
-  const getBorderColor = (status: string) => {
-    if (status === 'pending') return '#7DD3FC'; // Azul da marca
-    return '#86EFAC'; // Verde da marca
+  const getBorderColor = (status: string, theme: Theme) => {
+    if (status === 'pending') return varAlpha(theme.vars.palette.info.mainChannel, 0.32);
+    return varAlpha(theme.vars.palette.success.mainChannel, 0.32);
   };
 
   const getTextOpacity = (status: string) => {
@@ -130,7 +130,7 @@ export function NotificationsCenter() {
                     bgcolor: getBackgroundColor(notification.status, theme),
                     borderRadius: 1,
                     border: '1px solid',
-                    borderColor: getBorderColor(notification.status),
+                    borderColor: getBorderColor(notification.status, theme),
                     opacity: getTextOpacity(notification.status),
                   })}
                 >
