@@ -1,8 +1,11 @@
 import type { CSSObject, Breakpoint } from '@mui/material/styles';
 
+import Box from '@mui/material/Box';
+
 import { AuthContent } from './content';
 import { MainSection } from '../core/main-section';
 import { LayoutSection } from '../core/layout-section';
+import { ThemeModeToggle } from '../components/theme-mode-toggle';
 
 import type { AuthContentProps } from './content';
 import type { MainSectionProps } from '../core/main-section';
@@ -75,6 +78,9 @@ export function AuthLayout({
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
+      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 3 }}>
+        <ThemeModeToggle />
+      </Box>
       {renderMain()}
     </LayoutSection>
   );
