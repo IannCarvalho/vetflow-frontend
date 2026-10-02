@@ -24,6 +24,22 @@ export const getPrescriptionById = async (id: string): Promise<Prescription> => 
 };
 
 /**
+ * Fetch the print-ready HTML document for a prescription.
+ *
+ * The backend resolves the pet, tutor and veterinarian header server-side and
+ * returns a self-contained HTML document. Fetching it through the axios
+ * instance ensures the JWT is attached (a plain window.open could not send the
+ * Authorization header).
+ */
+export const getPrescriptionPrintHtml = async (id: string): Promise<string> => {
+  const response = await axiosInstance.get<string>(`/prescriptions/${id}/print`, {
+    responseType: 'text',
+    headers: { Accept: 'text/html' },
+  });
+  return response.data;
+};
+
+/**
  * Fetch all prescriptions for a specific pet
  */
 export const getPrescriptionsByPetId = async (petId: string): Promise<Prescription[]> => {

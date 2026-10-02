@@ -1,6 +1,6 @@
 import type { Prescription } from 'src/types';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -10,6 +10,8 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+
+import { getPrescriptionPrintHtml } from 'src/api/prescriptionsApi';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -33,39 +35,66 @@ export default function PrescriptionReportDialog({
   vetName,
 }: PrescriptionReportDialogProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const [printing, setPrinting] = useState(false);
 
   if (!prescription) return null;
 
-  const handlePrint = () => {
-    const content = printRef.current;
-    if (!content) return;
-
+  // openPrintWindow writes a full HTML document into a new window and triggers
+  // the browser print dialog. The backend's print document already calls
+  // window.print() on load; the local fallback markup does not, so we trigger
+  // it here when needed.
+  const openPrintWindow = (html: string, triggerPrint: boolean) => {
     const printWindow = window.open('', '_blank', 'width=800,height=900');
     if (!printWindow) return;
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Receituário - ${petName ?? ''}</title>
-          <style>
-            body { font-family: Arial, Helvetica, sans-serif; color: #212B36; padding: 32px; }
-            h1 { font-size: 20px; margin-bottom: 4px; }
-            h2 { font-size: 15px; margin: 24px 0 8px; }
-            .muted { color: #637381; font-size: 13px; }
-            .item { border: 1px solid #DFE3E8; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
-            .item strong { font-size: 15px; }
-            .row { font-size: 13px; margin-top: 4px; }
-            .signature { margin-top: 64px; text-align: center; }
-            .signature .line { border-top: 1px solid #212B36; width: 260px; margin: 0 auto 4px; }
-          </style>
-        </head>
-        <body>${content.innerHTML}</body>
-      </html>
-    `);
+    printWindow.document.open();
+    printWindow.document.write(html);
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+
+    if (triggerPrint) {
+      printWindow.print();
+    }
+  };
+
+  // buildLocalDocument reproduces the previous client-side layout. It is only
+  // used as a fallback when the backend print endpoint is unavailable.
+  const buildLocalDocument = (inner: string) => `
+    <html>
+      <head>
+        <title>Receituário - ${petName ?? ''}</title>
+        <style>
+          body { font-family: Arial, Helvetica, sans-serif; color: #212B36; padding: 32px; }
+          h1 { font-size: 20px; margin-bottom: 4px; }
+          h2 { font-size: 15px; margin: 24px 0 8px; }
+          .muted { color: #637381; font-size: 13px; }
+          .item { border: 1px solid #DFE3E8; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+          .item strong { font-size: 15px; }
+          .row { font-size: 13px; margin-top: 4px; }
+          .signature { margin-top: 64px; text-align: center; }
+          .signature .line { border-top: 1px solid #212B36; width: 260px; margin: 0 auto 4px; }
+        </style>
+      </head>
+      <body>${inner}</body>
+    </html>
+  `;
+
+  const handlePrint = async () => {
+    setPrinting(true);
+    try {
+      // Preferred path: the backend renders the canonical, print-ready document
+      // (header resolved server-side) and opens the print dialog on load.
+      const html = await getPrescriptionPrintHtml(prescription.id);
+      openPrintWindow(html, false);
+    } catch {
+      // Fallback: render the preview markup locally if the endpoint fails.
+      const content = printRef.current;
+      if (content) {
+        openPrintWindow(buildLocalDocument(content.innerHTML), true);
+      }
+    } finally {
+      setPrinting(false);
+    }
   };
 
   const formattedDate = new Date(prescription.date).toLocaleDateString('pt-BR', {
@@ -153,9 +182,16 @@ export default function PrescriptionReportDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Fechar</Button>
-        <Button onClick={handlePrint} variant="contained" startIcon={<Iconify icon="solar:printer-bold" />}>
-          Imprimir
+        <Button onClick={onClose} disabled={printing}>
+          Fechar
+        </Button>
+        <Button
+          onClick={handlePrint}
+          variant="contained"
+          disabled={printing}
+          startIcon={<Iconify icon="solar:printer-bold" />}
+        >
+          {printing ? 'Preparando...' : 'Imprimir'}
         </Button>
       </DialogActions>
     </Dialog>
