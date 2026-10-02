@@ -14,13 +14,21 @@ interface BackendErrorBody {
  * Extract a human-friendly, pt-BR message from an unknown thrown value.
  *
  * Priority:
- * 1. Backend "error" (+ "details") from the JSON response body
- * 2. Network/unreachable server message
- * 3. A provided fallback (defaults to a generic message)
+ * 1. Access-denied (HTTP 403 or backend code "ACCESS_DENIED") -> friendly message
+ * 2. Backend "error" (+ "details") from the JSON response body
+ * 3. Network/unreachable server message
+ * 4. A provided fallback (defaults to a generic message)
  */
 export function getApiErrorMessage(error: unknown, fallback = 'Ocorreu um erro inesperado'): string {
   if (axios.isAxiosError(error)) {
     const body = error.response?.data as BackendErrorBody | undefined;
+
+    // Resource owned by another vet (scope-per-vet). The backend returns
+    // 403 { error: "Acesso negado", code: "ACCESS_DENIED" }; show a clear,
+    // consistent message regardless of the exact backend wording.
+    if (error.response?.status === 403 || body?.code === 'ACCESS_DENIED') {
+      return 'Você não tem acesso a este registro';
+    }
 
     if (body?.error) {
       return body.details ? `${body.error}: ${body.details}` : body.error;
