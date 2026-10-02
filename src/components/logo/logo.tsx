@@ -43,7 +43,7 @@ export function Logo({
       {...other}
     >
       <img
-        src="/logo-transparent.png"
+        src="/logo.png"
         alt="VetFlow"
         style={{
           width: '100%',
