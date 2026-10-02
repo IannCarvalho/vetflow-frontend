@@ -15,6 +15,7 @@ import Badge from '@mui/material/Badge';
 import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
 import ListItem from '@mui/material/ListItem';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -86,15 +87,11 @@ export function NotificationsCenter() {
 
   return (
     <>
-      <Button
-        variant="text"
-        onClick={handleClick}
-        startIcon={
-          <Badge badgeContent={pendingNotifications.length} color="error">
-            <Icon icon="solar:bell-bing-bold" width={24} />
-          </Badge>
-        }
-      />
+      <IconButton color="inherit" onClick={handleClick} aria-label="Notificações">
+        <Badge badgeContent={pendingNotifications.length} color="error">
+          <Icon icon="solar:bell-bing-bold" width={24} />
+        </Badge>
+      </IconButton>
 
       <Popover
         open={open}
