@@ -184,11 +184,6 @@ export default function ClientesPage() {
                 ),
               },
             }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: '#FFFFFF',
-              },
-            }}
           />
         </Box>
 

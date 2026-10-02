@@ -181,7 +181,7 @@ export default function DashboardPage() {
           {/* Recent Consultations */}
           <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ p: 3, pb: 2, backgroundColor: '#E0F2FE', borderRadius: '4px 4px 0 0' }}>
+              <Box sx={{ p: 3, pb: 2, backgroundColor: 'background.neutral', borderRadius: '4px 4px 0 0' }}>
                 <Typography variant="h6">Consultas Recentes</Typography>
               </Box>
               {consultationsLoading ? (
@@ -224,7 +224,7 @@ export default function DashboardPage() {
           {/* Upcoming Vaccinations */}
           <Grid size={{ xs: 12, md: 6 }}>
             <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ p: 3, pb: 2, backgroundColor: '#E0F2FE', borderRadius: '4px 4px 0 0' }}>
+              <Box sx={{ p: 3, pb: 2, backgroundColor: 'background.neutral', borderRadius: '4px 4px 0 0' }}>
                 <Typography variant="h6">
                   Vacinas a Vencer
                   <Typography component="span" variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>

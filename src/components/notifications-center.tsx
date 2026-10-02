@@ -2,8 +2,11 @@
  * Notifications Center Component
  * Displays upcoming consultations and vaccinations
  */
+import type { Theme } from '@mui/material/styles';
+
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
+import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
@@ -64,9 +67,9 @@ export function NotificationsCenter() {
     return 'default';
   };
 
-  const getBackgroundColor = (status: string) => {
-    if (status === 'pending') return '#E0F2FE'; // Azul claro da marca
-    return '#DCFCE7'; // Verde claro da marca
+  const getBackgroundColor = (status: string, theme: Theme) => {
+    if (status === 'pending') return varAlpha(theme.vars.palette.info.mainChannel, 0.16);
+    return varAlpha(theme.vars.palette.success.mainChannel, 0.16);
   };
 
   const getBorderColor = (status: string) => {
@@ -121,15 +124,15 @@ export function NotificationsCenter() {
                   <ListItem
                   key={notification.id}
                   disablePadding
-                  sx={{
+                  sx={(theme) => ({
                     mb: 1,
                     p: 1.5,
-                    bgcolor: getBackgroundColor(notification.status),
+                    bgcolor: getBackgroundColor(notification.status, theme),
                     borderRadius: 1,
                     border: '1px solid',
                     borderColor: getBorderColor(notification.status),
                     opacity: getTextOpacity(notification.status),
-                  }}
+                  })}
                 >
                   <Box sx={{ display: 'flex', width: '100%', gap: 1 }}>
                     <Box sx={{ flexShrink: 0, mt: 0.5 }}>

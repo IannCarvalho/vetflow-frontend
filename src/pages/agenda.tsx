@@ -212,7 +212,7 @@ export default function AgendaPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           fullWidth
-          sx={{ mb: 3, '& .MuiOutlinedInput-root': { backgroundColor: '#FFFFFF' } }}
+          sx={{ mb: 3 }}
           InputProps={{
             startAdornment: (
               <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />

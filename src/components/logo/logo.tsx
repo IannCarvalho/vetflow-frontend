@@ -30,7 +30,7 @@ export function Logo({
       underline="none"
       className={mergeClasses([logoClasses.root, className])}
       sx={[
-        {
+        (theme) => ({
           width: isSingle ? 'auto' : 640,
           height: isSingle ? 'auto' : 192,
           mt: isSingle ? 0 : -10,
@@ -40,8 +40,11 @@ export function Logo({
           borderRadius: isSingle ? '16px' : 0,
           border: isSingle ? '2px solid rgba(2, 132, 199, 0.1)' : 'none',
           backdropFilter: 'blur(4px)',
+          ...theme.applyStyles('dark', {
+            background: theme.vars.palette.background.paper,
+          }),
           ...(disabled && { pointerEvents: 'none' }),
-        },
+        }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
       {...other}

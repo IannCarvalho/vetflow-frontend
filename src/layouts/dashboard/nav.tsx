@@ -54,6 +54,9 @@ export function NavDesktop({
         [theme.breakpoints.up(layoutQuery)]: {
           display: 'flex',
         },
+        ...theme.applyStyles('dark', {
+          background: theme.vars.palette.background.default,
+        }),
         ...sx,
       }}
     >
