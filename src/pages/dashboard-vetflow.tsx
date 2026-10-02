@@ -25,8 +25,8 @@ import CardActionArea from '@mui/material/CardActionArea';
 import TableContainer from '@mui/material/TableContainer';
 
 import { useGetPets } from 'src/hooks/usePetsQuery';
-import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useGetVaccines } from 'src/hooks/useVaccinesQuery';
+import { useGetDashboardStats } from 'src/hooks/useDashboardQuery';
 import { useGetConsultations } from 'src/hooks/useConsultationsQuery';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -128,8 +128,8 @@ function StatCard({
 export default function DashboardPage() {
   const navigate = useNavigate();
 
-  const { data: clients, isLoading: clientsLoading } = useGetClients();
-  const { data: pets, isLoading: petsLoading } = useGetPets();
+  const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
+  const { data: pets } = useGetPets();
   const { data: consultations, isLoading: consultationsLoading } = useGetConsultations();
   const { data: vaccines, isLoading: vaccinesLoading } = useGetVaccines();
 
@@ -144,16 +144,6 @@ export default function DashboardPage() {
 
   // Single "now" reference per render so the memoized lists stay stable.
   const now = useMemo(() => new Date(), []);
-
-  // Consultations this month
-  const consultationsThisMonth = useMemo(
-    () =>
-      consultations?.filter((c) => {
-        const date = new Date(c.date);
-        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-      }).length ?? 0,
-    [consultations, now]
-  );
 
   // Most recent consultations, newest first
   const recentConsultations = useMemo(
@@ -191,48 +181,70 @@ export default function DashboardPage() {
 
         {/* Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 5 }}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               title="Total de Clientes"
-              value={clients?.length ?? 0}
+              value={stats?.total_clients ?? 0}
               color="primary"
               icon="solar:users-group-rounded-bold"
-              loading={clientsLoading}
+              loading={statsLoading}
               onClick={() => navigate('/clientes')}
             />
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               title="Total de Pets"
-              value={pets?.length ?? 0}
+              value={stats?.total_pets ?? 0}
               color="success"
               icon="solar:paw-bold"
-              loading={petsLoading}
+              loading={statsLoading}
               onClick={() => navigate('/pets')}
             />
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               title="Consultas este mês"
-              value={consultationsThisMonth}
+              value={stats?.consultations_this_month ?? 0}
               color="warning"
               icon="solar:stethoscope-bold"
-              loading={consultationsLoading}
+              loading={statsLoading}
               onClick={() => navigate('/consultas')}
             />
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               title="Vacinas a vencer"
-              value={upcomingVaccines.length}
+              value={stats?.upcoming_vaccinations ?? 0}
               color="error"
               icon="mdi:needle"
-              loading={vaccinesLoading}
-              emphasized={upcomingVaccines.length > 0}
+              loading={statsLoading}
+              emphasized={(stats?.upcoming_vaccinations ?? 0) > 0}
               onClick={() => navigate('/vacinas')}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <StatCard
+              title="Faturas pendentes"
+              value={stats?.pending_invoices ?? 0}
+              color="warning"
+              icon="solar:bill-list-bold"
+              loading={statsLoading}
+              onClick={() => navigate('/financeiro')}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <StatCard
+              title="Agendamentos hoje"
+              value={stats?.appointments_today ?? 0}
+              color="primary"
+              icon="solar:calendar-mark-bold"
+              loading={statsLoading}
+              onClick={() => navigate('/agenda')}
             />
           </Grid>
         </Grid>

@@ -367,4 +367,6 @@ export interface DashboardStats {
   total_pets: number;
   consultations_this_month: number;
   upcoming_vaccinations: number;
+  pending_invoices: number;
+  appointments_today: number;
 }
