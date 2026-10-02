@@ -6,6 +6,7 @@ import { varAlpha } from 'minimal-shared/utils';
 import Box from '@mui/material/Box';
 import ListItem from '@mui/material/ListItem';
 import { useTheme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 import ListItemButton from '@mui/material/ListItemButton';
 import Drawer, { drawerClasses } from '@mui/material/Drawer';
 
@@ -15,12 +16,14 @@ import { RouterLink } from 'src/routes/components';
 import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import type { NavItem } from '../nav-config-dashboard';
+import { getActiveNavPath } from './nav-utils';
+
+import type { NavSection } from '../nav-config-dashboard';
 
 // ----------------------------------------------------------------------
 
 export type NavContentProps = {
-  data: NavItem[];
+  data: NavSection[];
   slots?: {
     topArea?: React.ReactNode;
     bottomArea?: React.ReactNode;
@@ -107,6 +110,9 @@ export function NavMobile({
 export function NavContent({ data, slots, sx }: NavContentProps) {
   const pathname = usePathname();
 
+  const allPaths = data.flatMap((section) => section.items.map((item) => item.path));
+  const activePath = getActiveNavPath(pathname, allPaths);
+
   return (
     <>
       <Logo />
@@ -133,50 +139,99 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
               flexDirection: 'column',
             }}
           >
-            {data.map((item) => {
-              const isActived = item.path === pathname;
-
-              return (
-                <ListItem disableGutters disablePadding key={item.title}>
-                  <ListItemButton
-                    disableGutters
-                    component={RouterLink}
-                    href={item.path}
-                    sx={[
-                      (theme) => ({
-                        pl: 2,
-                        py: 1,
-                        gap: 2,
-                        pr: 1.5,
-                        borderRadius: 0.75,
-                        typography: 'body2',
-                        fontWeight: 'fontWeightMedium',
-                        color: theme.vars.palette.text.secondary,
-                        minHeight: 44,
-                        ...(isActived && {
-                          fontWeight: 'fontWeightSemiBold',
-                          color: theme.vars.palette.primary.main,
-                          bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
-                          '&:hover': {
-                            bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
-                          },
-                        }),
-                      }),
-                    ]}
+            {data.map((section, sectionIndex) => (
+              <Box
+                component="li"
+                key={section.subheader ?? sectionIndex}
+                sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
+              >
+                {section.subheader && (
+                  <Typography
+                    component="span"
+                    variant="caption"
+                    sx={{
+                      px: 2,
+                      mb: 0.5,
+                      mt: sectionIndex === 0 ? 0 : 2,
+                      display: 'block',
+                      lineHeight: 1.5,
+                      color: 'text.disabled',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase',
+                      fontWeight: 'fontWeightSemiBold',
+                    }}
                   >
-                    <Box component="span" sx={{ width: 24, height: 24 }}>
-                      {item.icon}
-                    </Box>
+                    {section.subheader}
+                  </Typography>
+                )}
 
-                    <Box component="span" sx={{ flexGrow: 1 }}>
-                      {item.title}
-                    </Box>
+                <Box
+                  component="ul"
+                  sx={{
+                    gap: 0.5,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  {section.items.map((item) => {
+                    const isActived = item.path === activePath;
 
-                    {item.info && item.info}
-                  </ListItemButton>
-                </ListItem>
-              );
-            })}
+                    return (
+                      <ListItem disableGutters disablePadding key={item.title}>
+                        <ListItemButton
+                          disableGutters
+                          component={RouterLink}
+                          href={item.path}
+                          sx={[
+                            (theme) => ({
+                              pl: 2,
+                              py: 1,
+                              gap: 2,
+                              pr: 1.5,
+                              position: 'relative',
+                              borderRadius: 0.75,
+                              typography: 'body2',
+                              fontWeight: 'fontWeightMedium',
+                              color: theme.vars.palette.text.secondary,
+                              minHeight: 44,
+                              ...(isActived && {
+                                fontWeight: 'fontWeightSemiBold',
+                                color: theme.vars.palette.primary.main,
+                                bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
+                                '&:hover': {
+                                  bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
+                                },
+                                '&::before': {
+                                  content: '""',
+                                  position: 'absolute',
+                                  left: 0,
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                  width: 3,
+                                  height: '60%',
+                                  borderRadius: 1,
+                                  backgroundColor: theme.vars.palette.primary.main,
+                                },
+                              }),
+                            }),
+                          ]}
+                        >
+                          <Box component="span" sx={{ width: 24, height: 24 }}>
+                            {item.icon}
+                          </Box>
+
+                          <Box component="span" sx={{ flexGrow: 1 }}>
+                            {item.title}
+                          </Box>
+
+                          {item.info && item.info}
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </Box>
+              </Box>
+            ))}
           </Box>
         </Box>
       </Scrollbar>

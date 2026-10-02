@@ -1,4 +1,4 @@
-import { Icon } from '@iconify/react';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -9,50 +9,65 @@ export type NavItem = {
   info?: React.ReactNode;
 };
 
-export const navData = [
+export type NavSection = {
+  subheader?: string;
+  items: NavItem[];
+};
+
+export const navData: NavSection[] = [
   {
-    title: 'Dashboard',
-    path: '/',
-    icon: <Icon icon="mdi:chart-line" width={24} height={24} />,
+    subheader: 'Operação',
+    items: [
+      {
+        title: 'Dashboard',
+        path: '/',
+        icon: <Iconify icon="mdi:chart-line" width={24} />,
+      },
+      {
+        title: 'Agenda',
+        path: '/agenda',
+        icon: <Iconify icon="mdi:calendar-clock" width={24} />,
+      },
+      {
+        title: 'Clientes',
+        path: '/clientes',
+        icon: <Iconify icon="mdi:account-multiple" width={24} />,
+      },
+      {
+        title: 'Pets',
+        path: '/pets',
+        icon: <Iconify icon="mdi:paw" width={24} />,
+      },
+      {
+        title: 'Consultas',
+        path: '/consultas',
+        icon: <Iconify icon="mdi:stethoscope" width={24} />,
+      },
+      {
+        title: 'Vacinas',
+        path: '/vacinas',
+        icon: <Iconify icon="mdi:needle" width={24} />,
+      },
+    ],
   },
   {
-    title: 'Agenda',
-    path: '/agenda',
-    icon: <Icon icon="mdi:calendar-clock" width={24} height={24} />,
-  },
-  {
-    title: 'Clientes',
-    path: '/clientes',
-    icon: <Icon icon="mdi:account-multiple" width={24} height={24} />,
-  },
-  {
-    title: 'Pets',
-    path: '/pets',
-    icon: <Icon icon="mdi:paw" width={24} height={24} />,
-  },
-  {
-    title: 'Consultas',
-    path: '/consultas',
-    icon: <Icon icon="mdi:stethoscope" width={24} height={24} />,
-  },
-  {
-    title: 'Vacinas',
-    path: '/vacinas',
-    icon: <Icon icon="mdi:needle" width={24} height={24} />,
-  },
-  {
-    title: 'Catálogo',
-    path: '/catalogo',
-    icon: <Icon icon="mdi:tag-multiple" width={24} height={24} />,
-  },
-  {
-    title: 'Financeiro',
-    path: '/financeiro',
-    icon: <Icon icon="mdi:cash-multiple" width={24} height={24} />,
-  },
-  {
-    title: 'Painel Financeiro',
-    path: '/financeiro/painel',
-    icon: <Icon icon="mdi:chart-bar" width={24} height={24} />,
+    subheader: 'Gestão',
+    items: [
+      {
+        title: 'Catálogo',
+        path: '/catalogo',
+        icon: <Iconify icon="mdi:tag-multiple" width={24} />,
+      },
+      {
+        title: 'Financeiro',
+        path: '/financeiro',
+        icon: <Iconify icon="mdi:cash-multiple" width={24} />,
+      },
+      {
+        title: 'Painel Financeiro',
+        path: '/financeiro/painel',
+        icon: <Iconify icon="mdi:chart-bar" width={24} />,
+      },
+    ],
   },
 ];
