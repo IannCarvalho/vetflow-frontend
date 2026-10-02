@@ -13,6 +13,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { useAuth } from 'src/contexts/auth-context';
 
 import { Iconify } from 'src/components/iconify';
@@ -44,22 +46,12 @@ export function SignInView() {
     } catch (error) {
       console.error('Erro ao fazer login:', error);
 
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          // Server responded with an error status (e.g. 401 = wrong credentials)
-          setLoginError(
-            error.response.status === 401
-              ? 'Email ou senha inválidos'
-              : `Erro do servidor (${error.response.status})`
-          );
-        } else {
-          // No response: server unreachable / network / CORS
-          setLoginError(
-            `Não foi possível conectar ao servidor (${error.config?.baseURL ?? 'URL desconhecida'}). Verifique se o backend está no ar.`
-          );
-        }
+      // Wrong credentials keep a dedicated message; everything else is
+      // formatted by the shared helper (handles 429/409/network/etc.).
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        setLoginError('Email ou senha inválidos');
       } else {
-        setLoginError('Ocorreu um erro inesperado ao entrar');
+        setLoginError(getApiErrorMessage(error));
       }
     } finally {
       setLoading(false);
@@ -80,6 +72,7 @@ export function SignInView() {
         router.push('/');
       } catch (error) {
         console.error('Erro ao registrar:', error);
+        throw error;
       } finally {
         setSignUpLoading(false);
       }

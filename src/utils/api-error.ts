@@ -15,9 +15,11 @@ interface BackendErrorBody {
  *
  * Priority:
  * 1. Access-denied (HTTP 403 or backend code "ACCESS_DENIED") -> friendly message
- * 2. Backend "error" (+ "details") from the JSON response body
- * 3. Network/unreachable server message
- * 4. A provided fallback (defaults to a generic message)
+ * 2. Rate limit (HTTP 429) -> "try again later" message
+ * 3. Duplicate email (HTTP 409) -> backend "error" or a default duplicate-email message
+ * 4. Backend "error" (+ "details") from the JSON response body
+ * 5. Network/unreachable server message
+ * 6. A provided fallback (defaults to a generic message)
  */
 export function getApiErrorMessage(error: unknown, fallback = 'Ocorreu um erro inesperado'): string {
   if (axios.isAxiosError(error)) {
@@ -28,6 +30,16 @@ export function getApiErrorMessage(error: unknown, fallback = 'Ocorreu um erro i
     // consistent message regardless of the exact backend wording.
     if (error.response?.status === 403 || body?.code === 'ACCESS_DENIED') {
       return 'Você não tem acesso a este registro';
+    }
+
+    // Too many requests (auth rate limit on login/register).
+    if (error.response?.status === 429) {
+      return 'Muitas tentativas. Aguarde um momento e tente novamente.';
+    }
+
+    // Duplicate email on sign-up.
+    if (error.response?.status === 409) {
+      return body?.error ?? 'Este e-mail já está cadastrado.';
     }
 
     if (body?.error) {
