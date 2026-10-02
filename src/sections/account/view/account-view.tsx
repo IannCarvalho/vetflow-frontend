@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Box, Card, Stack, Typography } from '@mui/material';
+import { Box, Card, Alert, Stack, Snackbar, Typography } from '@mui/material';
 
 import { AccountForm } from '../account-form';
 import { ChangePasswordForm } from '../change-password-form';
@@ -8,9 +8,26 @@ import { ProfilePictureUpload } from '../profile-picture-upload';
 
 export function AccountView() {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const handleUpdateSuccess = () => {
     setRefreshKey((prev) => prev + 1);
+  };
+
+  const handleNotify = (message: string, severity: 'success' | 'error') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -48,18 +65,24 @@ export function AccountView() {
               <Typography variant="h6" sx={{ mb: 3 }}>
                 Informações Pessoais
               </Typography>
-              <AccountForm onUpdateSuccess={handleUpdateSuccess} />
+              <AccountForm onUpdateSuccess={handleUpdateSuccess} onNotify={handleNotify} />
             </Card>
 
             <Card sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ mb: 3 }}>
                 Alterar Senha
               </Typography>
-              <ChangePasswordForm onUpdateSuccess={handleUpdateSuccess} />
+              <ChangePasswordForm onUpdateSuccess={handleUpdateSuccess} onNotify={handleNotify} />
             </Card>
           </Stack>
         </Box>
       </Stack>
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -3,15 +3,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { LoadingButton } from '@mui/lab';
 import { Box, Stack, TextField, IconButton, InputAdornment } from '@mui/material';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { usersApi } from 'src/api/usersApi';
 
 import { Iconify } from 'src/components/iconify';
 
 interface ChangePasswordFormProps {
   onUpdateSuccess?: () => void;
+  onNotify?: (message: string, severity: 'success' | 'error') => void;
 }
 
-export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps) {
+export function ChangePasswordForm({ onUpdateSuccess, onNotify }: ChangePasswordFormProps) {
   const [loading, setLoading] = useState(false);
   const [successDisabled, setSuccessDisabled] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -100,17 +103,16 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
         setSuccessDisabled(true);
         setTimeout(() => setSuccessDisabled(false), 2000);
 
-        alert('Senha atualizada com sucesso!');
+        onNotify?.('Senha atualizada com sucesso!', 'success');
         onUpdateSuccess?.();
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error changing password:', error);
-        const errorMsg = error.response?.data?.error || error.response?.data?.message || '';
-        alert('Erro ao atualizar senha: ' + (errorMsg || 'Tente novamente'));
+        onNotify?.(getApiErrorMessage(error), 'error');
       } finally {
         setLoading(false);
       }
     },
-    [formData, onUpdateSuccess]
+    [formData, onUpdateSuccess, onNotify]
   );
 
   return (
@@ -126,19 +128,21 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
           error={!!errors.currentPassword}
           helperText={errors.currentPassword}
           placeholder="Digite sua senha atual"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  edge="end"
-                >
-                  <Iconify
-                    icon={showCurrentPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
-                  />
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    edge="end"
+                  >
+                    <Iconify
+                      icon={showCurrentPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                    />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -152,14 +156,16 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
           error={!!errors.newPassword}
           helperText={errors.newPassword}
           placeholder="Digite sua nova senha"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
-                  <Iconify icon={showNewPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
+                    <Iconify icon={showNewPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -173,16 +179,18 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
           error={!!errors.confirmPassword}
           helperText={errors.confirmPassword}
           placeholder="Confirme sua nova senha"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                  <Iconify
-                    icon={showConfirmPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
-                  />
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                    <Iconify
+                      icon={showConfirmPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                    />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
