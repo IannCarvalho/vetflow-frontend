@@ -5,8 +5,6 @@ import { mergeClasses } from 'minimal-shared/utils';
 import Link from '@mui/material/Link';
 import { styled } from '@mui/material/styles';
 
-import { RouterLink } from 'src/routes/components';
-
 import { logoClasses } from './classes';
 
 // ----------------------------------------------------------------------
@@ -30,19 +28,14 @@ export function Logo({
       underline="none"
       className={mergeClasses([logoClasses.root, className])}
       sx={[
-        (theme) => ({
+        () => ({
           width: isSingle ? 'auto' : 640,
           height: isSingle ? 'auto' : 192,
           mt: isSingle ? 0 : -10,
           mb: isSingle ? 3 : 0,
-          padding: isSingle ? '16px 20px' : 0,
-          background: '#f9f9f6',
-          borderRadius: isSingle ? '16px' : 0,
-          border: isSingle ? '2px solid rgba(2, 132, 199, 0.1)' : 'none',
-          backdropFilter: 'blur(4px)',
-          ...theme.applyStyles('dark', {
-            background: theme.vars.palette.background.paper,
-          }),
+          padding: isSingle ? '8px 12px' : 0,
+          // The logo image is transparent, so no wrapper background is needed:
+          // it floats cleanly over both the light and dark themes.
           ...(disabled && { pointerEvents: 'none' }),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
@@ -50,7 +43,7 @@ export function Logo({
       {...other}
     >
       <img
-        src="/logo.png"
+        src="/logo-transparent.png"
         alt="VetFlow"
         style={{
           width: '100%',
