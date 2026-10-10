@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  no-conflict-markers:
+    name: Reject merge conflict markers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Fail the build if any tracked file still contains a git conflict marker.
+      - name: Scan for conflict markers
+        run: |
+          if git grep -nE '^(<{7}|={7}|>{7})([^=]|$)' -- . ; then
+            echo "::error::Unresolved merge conflict markers found (see above)."
+            exit 1
+          fi
+          echo "No conflict markers found."
+
+  build-test:
+    name: Typecheck, build & test
+    runs-on: ubuntu-latest
+    needs: no-conflict-markers
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install deps
+        run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Build
+        run: npx vite build
+      - name: Test
+        run: npx vitest run

@@ -409,8 +409,8 @@ export default function PetsPage() {
             </DialogContentText>
             <Alert severity="warning">
               Todas as <strong>consultas</strong>, <strong>vacinas</strong> e{' '}
-<strong>receitas</strong> e <strong>anexos</strong> deste pet também serão excluídas. Essa
-              ação não pode ser desfeita.
+              <strong>receitas</strong> e <strong>anexos</strong> deste pet também serão excluídas.
+              Essa ação não pode ser desfeita.
             </Alert>
           </DialogContent>
           <DialogActions>

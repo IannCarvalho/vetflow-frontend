@@ -11,7 +11,8 @@ import { notificationsApi } from 'src/api/notificationsApi';
 export const useNotifications = () => useQuery<Notification[]>({
     queryKey: ['notifications'],
     queryFn: () => notificationsApi.getAll(),
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 120000, // Poll every 2 minutes (reduced load)
+    refetchIntervalInBackground: false, // Pause polling when the tab is not visible
   });
 
 export const useGenerateNotifications = () => {
