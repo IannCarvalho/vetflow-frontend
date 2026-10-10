@@ -15,6 +15,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -26,7 +27,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
+import TablePagination from '@mui/material/TablePagination';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetPets } from 'src/hooks/usePetsQuery';
@@ -58,6 +59,8 @@ export default function VacinasPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterOption>('Todas');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openForm, setOpenForm] = useState(false);
   const [vaccineToEdit, setVaccineToEdit] = useState<Vaccine | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -118,6 +121,12 @@ export default function VacinasPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allVaccines, filter, searchTerm, isUpcoming, petNameById]);
 
+  // Current page slice of the already-filtered list (pagination is client-side)
+  const paginatedVaccines = useMemo(
+    () => visibleVaccines.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [visibleVaccines, page, rowsPerPage]
+  );
+
   const handleEdit = useCallback((vaccine: Vaccine) => {
     setVaccineToEdit(vaccine);
     setOpenForm(true);
@@ -172,13 +181,18 @@ export default function VacinasPage() {
         <TextField
           placeholder="Buscar por vacina, fabricante ou pet..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(0);
+          }}
           fullWidth
-          sx={{ mb: 3, '& .MuiOutlinedInput-root': { backgroundColor: '#FFFFFF' } }}
-          InputProps={{
-            startAdornment: (
-              <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
-            ),
+          sx={{ mb: 3 }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
+              ),
+            },
           }}
         />
 
@@ -187,7 +201,10 @@ export default function VacinasPage() {
             <Chip
               key={option}
               label={option}
-              onClick={() => setFilter(option)}
+              onClick={() => {
+                setFilter(option);
+                setPage(0);
+              }}
               color={filter === option ? 'primary' : 'default'}
               variant={filter === option ? 'filled' : 'outlined'}
             />
@@ -196,9 +213,48 @@ export default function VacinasPage() {
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
+                    <TableCell>Pet</TableCell>
+                    <TableCell>Vacina</TableCell>
+                    <TableCell>Fabricante</TableCell>
+                    <TableCell>Lote</TableCell>
+                    <TableCell>Data Aplicação</TableCell>
+                    <TableCell>Próxima Dose</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : visibleVaccines.length > 0 ? (
             <TableContainer>
               <Table>
@@ -214,7 +270,7 @@ export default function VacinasPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {visibleVaccines.map((v) => {
+                  {paginatedVaccines.map((v) => {
                     const remaining = v.next_dose_date ? daysUntil(v.next_dose_date) : null;
                     const upcoming = isUpcoming(v);
                     const urgent = remaining !== null && remaining <= URGENT_THRESHOLD_DAYS;
@@ -269,6 +325,20 @@ export default function VacinasPage() {
                   })}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={visibleVaccines.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage="Linhas por página:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+              />
             </TableContainer>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>

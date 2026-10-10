@@ -3,14 +3,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { LoadingButton } from '@mui/lab';
 import { Box, Stack, TextField } from '@mui/material';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { usersApi } from 'src/api/usersApi';
 import { useAuth } from 'src/contexts/auth-context';
 
 interface AccountFormProps {
   onUpdateSuccess?: () => void;
+  onNotify?: (message: string, severity: 'success' | 'error') => void;
 }
 
-export function AccountForm({ onUpdateSuccess }: AccountFormProps) {
+export function AccountForm({ onUpdateSuccess, onNotify }: AccountFormProps) {
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [successDisabled, setSuccessDisabled] = useState(false);
@@ -91,16 +94,16 @@ export function AccountForm({ onUpdateSuccess }: AccountFormProps) {
           setSuccessDisabled(true);
           setTimeout(() => setSuccessDisabled(false), 2000);
 
-          alert('Perfil atualizado com sucesso!');
+          onNotify?.('Perfil atualizado com sucesso!', 'success');
         }
       } catch (error) {
         console.error('Error updating profile:', error);
-        alert('Erro ao atualizar perfil');
+        onNotify?.(getApiErrorMessage(error), 'error');
       } finally {
         setLoading(false);
       }
     },
-    [formData, user, updateUser, onUpdateSuccess]
+    [formData, user, updateUser, onUpdateSuccess, onNotify]
   );
 
   const hasChanges = formData.name !== user?.name || formData.email !== user?.email;

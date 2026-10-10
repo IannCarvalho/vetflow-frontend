@@ -17,13 +17,20 @@ import { ProtectedRoute } from './protected-route';
 // ----------------------------------------------------------------------
 
 export const DashboardPage = lazy(() => import('src/pages/dashboard-vetflow'));
+export const AgendaPage = lazy(() => import('src/pages/agenda'));
 export const ClientesPage = lazy(() => import('src/pages/clientes'));
 export const ClientPetsPage = lazy(() => import('src/pages/client-pets'));
 export const PetsPage = lazy(() => import('src/pages/pets'));
 export const PetVacinasPage = lazy(() => import('src/pages/pet-vacinas'));
 export const PetConsultasPage = lazy(() => import('src/pages/pet-consultas'));
+export const PetReceitasPage = lazy(() => import('src/pages/pet-receitas'));
+export const PetAnexosPage = lazy(() => import('src/pages/pet-anexos'));
+export const PetProntuarioPage = lazy(() => import('src/pages/pet-prontuario'));
 export const VacinasPage = lazy(() => import('src/pages/vacinas'));
 export const ConsultasPage = lazy(() => import('src/pages/consultas'));
+export const CatalogoPage = lazy(() => import('src/pages/catalogo'));
+export const FinanceiroPage = lazy(() => import('src/pages/financeiro'));
+export const FinanceiroDashboardPage = lazy(() => import('src/pages/financeiro-dashboard'));
 export const AccountPage = lazy(() => import('src/pages/account'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
@@ -87,13 +94,20 @@ export const routesSection: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'agenda', element: <AgendaPage /> },
       { path: 'clientes', element: <ClientesPage /> },
       { path: 'clientes/:clientId/pets', element: <ClientPetsPage /> },
       { path: 'pets', element: <PetsPage /> },
       { path: 'pets/:petId/vacinas', element: <PetVacinasPage /> },
       { path: 'pets/:petId/consultas', element: <PetConsultasPage /> },
+      { path: 'pets/:petId/receitas', element: <PetReceitasPage /> },
+      { path: 'pets/:petId/anexos', element: <PetAnexosPage /> },
+      { path: 'pets/:petId/prontuario', element: <PetProntuarioPage /> },
       { path: 'vacinas', element: <VacinasPage /> },
       { path: 'consultas', element: <ConsultasPage /> },
+      { path: 'catalogo', element: <CatalogoPage /> },
+      { path: 'financeiro', element: <FinanceiroPage /> },
+      { path: 'financeiro/painel', element: <FinanceiroDashboardPage /> },
       { path: 'account', element: <AccountPage /> },
     ],
   },

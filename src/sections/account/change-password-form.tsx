@@ -3,20 +3,25 @@ import { useState, useEffect, useCallback } from 'react';
 import { LoadingButton } from '@mui/lab';
 import { Box, Stack, TextField, IconButton, InputAdornment } from '@mui/material';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { usersApi } from 'src/api/usersApi';
 
 import { Iconify } from 'src/components/iconify';
 
 interface ChangePasswordFormProps {
   onUpdateSuccess?: () => void;
+  onNotify?: (message: string, severity: 'success' | 'error') => void;
 }
 
-export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps) {
+export function ChangePasswordForm({ onUpdateSuccess, onNotify }: ChangePasswordFormProps) {
   const [loading, setLoading] = useState(false);
   const [successDisabled, setSuccessDisabled] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
@@ -25,6 +30,7 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
   // Reset form data and success state when needed
   useEffect(() => {
     setFormData({
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     });
@@ -51,6 +57,9 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    if (!formData.currentPassword.trim()) {
+      newErrors.currentPassword = 'Senha atual é obrigatória';
+    }
     if (!formData.newPassword.trim()) {
       newErrors.newPassword = 'Nova senha é obrigatória';
     }
@@ -79,11 +88,13 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
       setLoading(true);
       try {
         await usersApi.changePassword({
+          current_password: formData.currentPassword,
           new_password: formData.newPassword,
         });
 
         // Clear form
         setFormData({
+          currentPassword: '',
           newPassword: '',
           confirmPassword: '',
         });
@@ -92,22 +103,49 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
         setSuccessDisabled(true);
         setTimeout(() => setSuccessDisabled(false), 2000);
 
-        alert('Senha atualizada com sucesso!');
+        onNotify?.('Senha atualizada com sucesso!', 'success');
         onUpdateSuccess?.();
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error changing password:', error);
-        const errorMsg = error.response?.data?.message || '';
-        alert('Erro ao atualizar senha: ' + (errorMsg || 'Tente novamente'));
+        onNotify?.(getApiErrorMessage(error), 'error');
       } finally {
         setLoading(false);
       }
     },
-    [formData, onUpdateSuccess]
+    [formData, onUpdateSuccess, onNotify]
   );
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={2.5}>
+        <TextField
+          fullWidth
+          label="Senha Atual"
+          type={showCurrentPassword ? 'text' : 'password'}
+          name="currentPassword"
+          value={formData.currentPassword}
+          onChange={handleChange}
+          error={!!errors.currentPassword}
+          helperText={errors.currentPassword}
+          placeholder="Digite sua senha atual"
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    edge="end"
+                  >
+                    <Iconify
+                      icon={showCurrentPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                    />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+
         <TextField
           fullWidth
           label="Nova Senha"
@@ -118,14 +156,16 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
           error={!!errors.newPassword}
           helperText={errors.newPassword}
           placeholder="Digite sua nova senha"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
-                  <Iconify icon={showNewPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
+                    <Iconify icon={showNewPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -139,16 +179,18 @@ export function ChangePasswordForm({ onUpdateSuccess }: ChangePasswordFormProps)
           error={!!errors.confirmPassword}
           helperText={errors.confirmPassword}
           placeholder="Confirme sua nova senha"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                  <Iconify
-                    icon={showConfirmPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
-                  />
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                    <Iconify
+                      icon={showConfirmPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                    />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 

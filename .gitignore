@@ -37,3 +37,6 @@ tsconfig.tsbuildinfo
 .ncurc.js
 knip.jsonc
 .env*
+
+# agent workflow artifacts (plans, reviews, task notes)
+.agents

@@ -108,6 +108,9 @@ const HeaderRoot = styled(AppBar, {
     backdropFilter: `blur(6px)`,
     WebkitBackdropFilter: `blur(6px)`,
     background: `linear-gradient(135deg, rgba(240, 249, 254, 0.7) 0%, rgba(245, 253, 248, 0.7) 100%)`,
+    ...theme.applyStyles('dark', {
+      background: varAlpha(theme.vars.palette.background.defaultChannel, 0.7),
+    }),
     ...(isOffset && {
       opacity: 1,
       visibility: 'visible',

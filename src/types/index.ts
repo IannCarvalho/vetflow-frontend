@@ -140,6 +140,207 @@ export interface Vaccine {
 }
 
 /**
+ * Prescription item - a single medication line in a prescription
+ */
+export interface PrescriptionItem {
+  medication: string;
+  dosage: string;
+  route: string;
+  frequency: string;
+  duration: string;
+  instructions: string;
+}
+
+/**
+ * Prescription interface - Represents a veterinary prescription (receituário)
+ *
+ * @property id - Unique identifier
+ * @property pet_id - Reference to Pet
+ * @property consultation_id - Reference to a Consultation (optional)
+ * @property date - ISO date of the prescription
+ * @property items - Medication lines
+ * @property general_notes - Free-form notes shown at the bottom of the receituário
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface Prescription {
+  id: string;
+  pet_id: string;
+  consultation_id?: string;
+  date: string;
+  items: PrescriptionItem[];
+  general_notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Catalog item type - service or stockable product
+ */
+export type CatalogItemType = 'service' | 'product';
+
+/**
+ * CatalogItem interface - a billable service or a stockable product
+ *
+ * @property id - Unique identifier
+ * @property type - 'service' or 'product'
+ * @property name - Item name
+ * @property description - Optional description
+ * @property price - Unit price
+ * @property unit - Unit label (un, ml, cx...)
+ * @property stock_quantity - Current stock (products only)
+ * @property min_stock - Minimum-stock threshold (products only)
+ * @property active - Whether the item is active/available
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface CatalogItem {
+  id: string;
+  type: CatalogItemType;
+  name: string;
+  description?: string;
+  price: number;
+  unit?: string;
+  stock_quantity: number;
+  min_stock: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Invoice payment status and method - aligned with the Go backend (models/invoice.go)
+ */
+export type PaymentStatus = 'pending' | 'paid' | 'partial' | 'overdue' | 'canceled';
+
+export type PaymentMethod = '' | 'cash' | 'card' | 'pix' | 'transfer' | 'boleto';
+
+/**
+ * Invoice item - a single billable line
+ */
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+/**
+ * Invoice interface - Represents a billing document (financeiro)
+ *
+ * @property id - Unique identifier
+ * @property client_id - Reference to Client
+ * @property pet_id - Reference to Pet (optional)
+ * @property consultation_id - Reference to Consultation (optional)
+ * @property items - Billable line items
+ * @property subtotal - Sum of item totals (server-computed)
+ * @property discount - Discount applied
+ * @property total - Final amount (server-computed)
+ * @property status - Payment status
+ * @property method - Payment method (optional)
+ * @property issue_date - ISO date the invoice was issued
+ * @property due_date - ISO due date (optional)
+ * @property paid_at - ISO timestamp when marked paid (optional)
+ * @property notes - Additional notes
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface Invoice {
+  id: string;
+  client_id: string;
+  pet_id?: string;
+  consultation_id?: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  status: PaymentStatus;
+  method?: PaymentMethod;
+  issue_date: string;
+  due_date?: string;
+  paid_at?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Attachment category in the pet's medical record
+ */
+export type AttachmentCategory = 'exam' | 'image' | 'report' | 'document';
+
+/**
+ * Attachment summary - metadata without the heavy base64 content (for listing)
+ */
+export interface AttachmentSummary {
+  id: string;
+  pet_id: string;
+  consultation_id?: string;
+  name: string;
+  category: AttachmentCategory;
+  mime_type: string;
+  notes?: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Appointment types and statuses - aligned with the Go backend (models/appointment.go)
+ */
+export type AppointmentType =
+  | 'consultation'
+  | 'vaccine'
+  | 'return'
+  | 'surgery'
+  | 'exam'
+  | 'grooming'
+  | 'other';
+
+export type AppointmentStatus =
+  | 'scheduled'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
+
+/**
+ * Appointment interface - Represents a scheduled visit in the agenda/calendar
+ *
+ * @property id - Unique identifier
+ * @property pet_id - Reference to Pet
+ * @property client_id - Reference to Client (optional)
+ * @property title - Short label for the appointment
+ * @property type - Kind of appointment
+ * @property status - Lifecycle status
+ * @property start_time - ISO timestamp of the appointment start
+ * @property end_time - ISO timestamp of the appointment end (optional)
+ * @property notes - Additional notes (optional)
+ * @property created_at - ISO timestamp
+ * @property updated_at - ISO timestamp
+ */
+export interface Appointment {
+  id: string;
+  pet_id: string;
+  client_id?: string;
+  title: string;
+  type: AppointmentType;
+  status: AppointmentStatus;
+  start_time: string;
+  end_time?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Attachment - full record including the base64 content (for download/preview)
+ */
+export interface Attachment extends AttachmentSummary {
+  content: string;
+}
+
+/**
  * API Response wrapper for consistent error handling
  */
 export interface ApiResponse<T> {
@@ -166,4 +367,6 @@ export interface DashboardStats {
   total_pets: number;
   consultations_this_month: number;
   upcoming_vaccinations: number;
+  pending_invoices: number;
+  appointments_today: number;
 }

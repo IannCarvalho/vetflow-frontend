@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
+import { GlobalSearch } from 'src/components/global-search/global-search';
 import { NotificationsCenter } from 'src/components/notifications-center';
 
 import { NavMobile, NavDesktop } from './nav';
@@ -19,6 +20,7 @@ import { MenuButton } from '../components/menu-button';
 import { HeaderSection } from '../core/header-section';
 import { LayoutSection } from '../core/layout-section';
 import { AccountPopover } from '../components/account-popover';
+import { ThemeModeToggle } from '../components/theme-mode-toggle';
 
 import type { MainSectionProps } from '../core/main-section';
 import type { HeaderSectionProps } from '../core/header-section';
@@ -68,10 +70,16 @@ export function DashboardLayout({
             sx={{ mr: 1, ml: -1, [theme.breakpoints.up(layoutQuery)]: { display: 'none' } }}
           />
           <NavMobile data={navData} open={open} onClose={onClose} />
+
+          {/** @slot Global search */}
+          <GlobalSearch />
         </>
       ),
       rightArea: (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
+          {/** @slot Theme mode toggle */}
+          <ThemeModeToggle />
+
           {/** @slot Notifications popover */}
           <NotificationsCenter />
 

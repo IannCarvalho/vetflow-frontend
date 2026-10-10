@@ -1,3 +1,5 @@
+import type { Client } from 'src/types';
+
 import { useNavigate } from 'react-router-dom';
 /**
  * VetFlow Clientes Page
@@ -13,6 +15,7 @@ import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -25,11 +28,12 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
+import TablePagination from '@mui/material/TablePagination';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetClients, useDeleteClient } from 'src/hooks/useClientsQuery';
 
+import { maskCPF, maskPhone } from 'src/utils/masks';
 import { getApiErrorMessage } from 'src/utils/api-error';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -46,8 +50,10 @@ export default function ClientesPage() {
   const deleteClientMutation = useDeleteClient();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openForm, setOpenForm] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{
@@ -72,12 +78,18 @@ export default function ClientesPage() {
     );
   }, [clients, searchTerm]);
 
+  // Current page slice of the already-filtered list (pagination is client-side)
+  const paginatedClients = useMemo(
+    () => filteredClients.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredClients, page, rowsPerPage]
+  );
+
   const handleAddClient = useCallback(() => {
     setSelectedClient(null);
     setOpenForm(true);
   }, []);
 
-  const handleEditClient = useCallback((client: any) => {
+  const handleEditClient = useCallback((client: Client) => {
     setSelectedClient(client);
     setOpenForm(true);
   }, []);
@@ -133,7 +145,7 @@ export default function ClientesPage() {
   };
 
   const handleViewPets = useCallback(
-    (client: any) => {
+    (client: Client) => {
       navigate(`/clientes/${client.id}/pets`);
     },
     [navigate]
@@ -161,15 +173,15 @@ export default function ClientesPage() {
             fullWidth
             placeholder="Pesquisar por nome, CPF ou telefone..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.secondary' }} />
-              ),
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(0);
             }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: '#FFFFFF',
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.secondary' }} />
+                ),
               },
             }}
           />
@@ -177,9 +189,40 @@ export default function ClientesPage() {
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
+                    <TableCell>Nome Completo</TableCell>
+                    <TableCell>CPF</TableCell>
+                    <TableCell>Telefone</TableCell>
+                    <TableCell>Endereço</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : filteredClients && filteredClients.length > 0 ? (
             <TableContainer>
               <Table>
@@ -193,11 +236,11 @@ export default function ClientesPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredClients.map((client) => (
+                  {paginatedClients.map((client) => (
                     <TableRow key={client.id} hover>
                       <TableCell>{client.full_name}</TableCell>
-                      <TableCell>{client.cpf}</TableCell>
-                      <TableCell>{client.phone}</TableCell>
+                      <TableCell>{maskCPF(client.cpf)}</TableCell>
+                      <TableCell>{maskPhone(client.phone)}</TableCell>
                       <TableCell>
                         {client.address.street}, {client.address.number}
                       </TableCell>
@@ -230,6 +273,20 @@ export default function ClientesPage() {
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={filteredClients.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage="Linhas por página:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+              />
             </TableContainer>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
@@ -257,9 +314,8 @@ export default function ClientesPage() {
               <strong>{clientPendingDeletion?.full_name ?? 'este cliente'}</strong>.
             </DialogContentText>
             <Alert severity="warning">
-              Todos os <strong>pets</strong>, <strong>consultas</strong> e{' '}
-              <strong>vacinas</strong> vinculados a este cliente também serão excluídos. Essa ação
-              não pode ser desfeita.
+              Todos os <strong>pets</strong>, <strong>consultas</strong> e <strong>vacinas</strong>{' '}
+              vinculados a este cliente também serão excluídos. Essa ação não pode ser desfeita.
             </Alert>
           </DialogContent>
           <DialogActions>

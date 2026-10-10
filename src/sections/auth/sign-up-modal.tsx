@@ -12,6 +12,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
 
+import { getApiErrorMessage } from 'src/utils/api-error';
+
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -19,7 +21,7 @@ import { Iconify } from 'src/components/iconify';
 interface SignUpModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: { email: string; password: string; name: string }) => void;
+  onSubmit: (data: { email: string; password: string; name: string }) => void | Promise<void>;
   loading?: boolean;
 }
 
@@ -42,7 +44,7 @@ export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUp
     setError('');
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     // Validações
     if (!formData.name.trim()) {
       setError('Nome é obrigatório');
@@ -69,19 +71,23 @@ export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUp
       return;
     }
 
-    onSubmit({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-    });
+    try {
+      await onSubmit({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
 
-    // Limpar formulário após sucesso
-    setFormData({
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    });
+      // Limpar formulário somente após sucesso
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+      });
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
   }, [formData, onSubmit]);
 
   const handleClose = useCallback(() => {

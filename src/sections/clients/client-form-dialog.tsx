@@ -24,6 +24,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { useCreateClient, useUpdateClient } from 'src/hooks/useClientsQuery';
 
+import { lookupCep } from 'src/utils/viacep';
 import { getApiErrorMessage } from 'src/utils/api-error';
 import { maskCEP, maskCPF, maskPhone, isValidCEP, isValidCPF, isValidPhone } from 'src/utils/masks';
 
@@ -68,10 +69,13 @@ export default function ClientFormDialog({
 
   const [submitError, setSubmitError] = useState('');
 
+  const [cepLoading, setCepLoading] = useState(false);
+
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(clientSchema),
@@ -108,6 +112,22 @@ export default function ClientFormDialog({
   }, [client, reset]);
 
   const isLoading = createClientMutation.isPending || updateClientMutation.isPending;
+
+  // Mask the CEP and, once it has 8 digits, look up the address via ViaCEP and
+  // auto-fill the street. Failures are silently ignored (best-effort).
+  const handleCepChange = async (raw: string, onChange: (v: string) => void) => {
+    const masked = maskCEP(raw);
+    onChange(masked);
+
+    if (isValidCEP(masked)) {
+      setCepLoading(true);
+      const address = await lookupCep(masked);
+      setCepLoading(false);
+      if (address?.street) {
+        setValue('address.street', address.street, { shouldValidate: true });
+      }
+    }
+  };
 
   const onSubmit = handleSubmit((data: any) => {
     setSubmitError('');
@@ -240,12 +260,15 @@ export default function ClientFormDialog({
               render={({ field }) => (
                 <TextField
                   {...field}
-                  onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                  onChange={(e) => handleCepChange(e.target.value, field.onChange)}
                   label="CEP"
                   placeholder="00000-000"
                   fullWidth
                   error={!!errors.address?.zip_code}
-                  helperText={errors.address?.zip_code?.message}
+                  helperText={errors.address?.zip_code?.message ?? (cepLoading ? 'Buscando endereço...' : undefined)}
+                  InputProps={{
+                    endAdornment: cepLoading ? <CircularProgress size={18} /> : undefined,
+                  }}
                 />
               )}
             />

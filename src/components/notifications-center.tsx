@@ -2,8 +2,11 @@
  * Notifications Center Component
  * Displays upcoming consultations and vaccinations
  */
+import type { Theme } from '@mui/material/styles';
+
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
+import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
@@ -12,6 +15,7 @@ import Badge from '@mui/material/Badge';
 import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
 import ListItem from '@mui/material/ListItem';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -64,14 +68,14 @@ export function NotificationsCenter() {
     return 'default';
   };
 
-  const getBackgroundColor = (status: string) => {
-    if (status === 'pending') return '#E0F2FE'; // Azul claro da marca
-    return '#DCFCE7'; // Verde claro da marca
+  const getBackgroundColor = (status: string, theme: Theme) => {
+    if (status === 'pending') return varAlpha(theme.vars.palette.info.mainChannel, 0.16);
+    return varAlpha(theme.vars.palette.success.mainChannel, 0.16);
   };
 
-  const getBorderColor = (status: string) => {
-    if (status === 'pending') return '#7DD3FC'; // Azul da marca
-    return '#86EFAC'; // Verde da marca
+  const getBorderColor = (status: string, theme: Theme) => {
+    if (status === 'pending') return varAlpha(theme.vars.palette.info.mainChannel, 0.32);
+    return varAlpha(theme.vars.palette.success.mainChannel, 0.32);
   };
 
   const getTextOpacity = (status: string) => {
@@ -83,15 +87,11 @@ export function NotificationsCenter() {
 
   return (
     <>
-      <Button
-        variant="text"
-        onClick={handleClick}
-        startIcon={
-          <Badge badgeContent={pendingNotifications.length} color="error">
-            <Icon icon="solar:bell-bing-bold" width={24} />
-          </Badge>
-        }
-      />
+      <IconButton color="inherit" onClick={handleClick} aria-label="Notificações">
+        <Badge badgeContent={pendingNotifications.length} color="error">
+          <Icon icon="solar:bell-bing-bold" width={24} />
+        </Badge>
+      </IconButton>
 
       <Popover
         open={open}
@@ -121,15 +121,15 @@ export function NotificationsCenter() {
                   <ListItem
                   key={notification.id}
                   disablePadding
-                  sx={{
+                  sx={(theme) => ({
                     mb: 1,
                     p: 1.5,
-                    bgcolor: getBackgroundColor(notification.status),
+                    bgcolor: getBackgroundColor(notification.status, theme),
                     borderRadius: 1,
                     border: '1px solid',
-                    borderColor: getBorderColor(notification.status),
+                    borderColor: getBorderColor(notification.status, theme),
                     opacity: getTextOpacity(notification.status),
-                  }}
+                  })}
                 >
                   <Box sx={{ display: 'flex', width: '100%', gap: 1 }}>
                     <Box sx={{ flexShrink: 0, mt: 0.5 }}>

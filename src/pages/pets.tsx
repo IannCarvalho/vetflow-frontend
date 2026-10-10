@@ -1,3 +1,5 @@
+import type { Pet } from 'src/types';
+
 import { useNavigate } from 'react-router-dom';
 /**
  * VetFlow Pets Page
@@ -15,6 +17,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -26,7 +29,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
+import TablePagination from '@mui/material/TablePagination';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetClients } from 'src/hooks/useClientsQuery';
@@ -48,7 +51,7 @@ export default function PetsPage() {
   const deletePetMutation = useDeletePet();
   const navigate = useNavigate();
 
-  const handleEditPet = useCallback((pet: any) => {
+  const handleEditPet = useCallback((pet: Pet) => {
     setSelectedPetForEdit(pet);
     setOpenPetForm(true);
   }, []);
@@ -72,10 +75,12 @@ export default function PetsPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecies, setSelectedSpecies] = useState('Todos');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [petToDelete, setPetToDelete] = useState<string | null>(null);
   const [openPetForm, setOpenPetForm] = useState(false);
-  const [selectedPetForEdit, setSelectedPetForEdit] = useState<any>(null);
+  const [selectedPetForEdit, setSelectedPetForEdit] = useState<Pet | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -105,6 +110,12 @@ export default function PetsPage() {
     return result;
   }, [allPets, selectedSpecies, searchTerm]);
 
+  // Current page slice of the already-filtered list (pagination is client-side)
+  const paginatedPets = useMemo(
+    () => filteredPets.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredPets, page, rowsPerPage]
+  );
+
   const handleViewVaccines = useCallback(
     (petId: string) => {
       navigate(`/pets/${petId}/vacinas`);
@@ -115,6 +126,27 @@ export default function PetsPage() {
   const handleViewConsultations = useCallback(
     (petId: string) => {
       navigate(`/pets/${petId}/consultas`);
+    },
+    [navigate]
+  );
+
+  const handleViewPrescriptions = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/receitas`);
+    },
+    [navigate]
+  );
+
+  const handleViewAttachments = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/anexos`);
+    },
+    [navigate]
+  );
+
+  const handleViewProntuario = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/prontuario`);
     },
     [navigate]
   );
@@ -172,13 +204,18 @@ export default function PetsPage() {
         <TextField
           placeholder="Buscar por nome, raça ou espécie..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(0);
+          }}
           fullWidth
-          sx={{ mb: 3, '& .MuiOutlinedInput-root': { backgroundColor: '#FFFFFF' } }}
-          InputProps={{
-            startAdornment: (
-              <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
-            ),
+          sx={{ mb: 3 }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <Iconify icon="eva:search-fill" sx={{ mr: 1, color: 'text.disabled' }} />
+              ),
+            },
           }}
         />
 
@@ -188,7 +225,10 @@ export default function PetsPage() {
             <Chip
               key={species}
               label={species}
-              onClick={() => setSelectedSpecies(species)}
+              onClick={() => {
+                setSelectedSpecies(species);
+                setPage(0);
+              }}
               color={selectedSpecies === species ? 'primary' : 'default'}
               variant={selectedSpecies === species ? 'filled' : 'outlined'}
             />
@@ -197,9 +237,48 @@ export default function PetsPage() {
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
-            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Espécie</TableCell>
+                    <TableCell>Raça</TableCell>
+                    <TableCell>Idade</TableCell>
+                    <TableCell>Sexo</TableCell>
+                    <TableCell>Tutor</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           ) : filteredPets && filteredPets.length > 0 ? (
             <TableContainer>
               <Table>
@@ -215,7 +294,7 @@ export default function PetsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredPets.map((pet) => (
+                  {paginatedPets.map((pet) => (
                     <TableRow key={pet.id} hover>
                       <TableCell>{pet.name}</TableCell>
                       <TableCell>{pet.species}</TableCell>
@@ -226,6 +305,15 @@ export default function PetsPage() {
                       <TableCell>{pet.sex === 'male' ? 'Macho' : 'Fêmea'}</TableCell>
                       <TableCell>{clientNameMap[pet.owner_id] || 'N/A'}</TableCell>
                       <TableCell align="right">
+                        <Tooltip title="Prontuário">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewProntuario(pet.id)}
+                            color="primary"
+                          >
+                            <Iconify icon="solar:clipboard-heart-bold" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Editar">
                           <IconButton size="small" onClick={() => handleEditPet(pet)}>
                             <Iconify icon="solar:pen-bold" />
@@ -249,6 +337,24 @@ export default function PetsPage() {
                             <Iconify icon="solar:vaccine-bold" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Ver Receitas">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewPrescriptions(pet.id)}
+                            color="info"
+                          >
+                            <Iconify icon="solar:document-text-bold" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Ver Anexos">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewAttachments(pet.id)}
+                            color="info"
+                          >
+                            <Iconify icon="solar:paperclip-bold" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Deletar">
                           <IconButton
                             size="small"
@@ -263,6 +369,20 @@ export default function PetsPage() {
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={filteredPets.length}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[5, 10, 25]}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                labelRowsPerPage="Linhas por página:"
+                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+              />
             </TableContainer>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
@@ -288,8 +408,9 @@ export default function PetsPage() {
               <strong>{petPendingDeletion?.name ?? 'este pet'}</strong>.
             </DialogContentText>
             <Alert severity="warning">
-              Todas as <strong>consultas</strong> e <strong>vacinas</strong> deste pet também serão
-              excluídas. Essa ação não pode ser desfeita.
+              Todas as <strong>consultas</strong>, <strong>vacinas</strong> e{' '}
+              <strong>receitas</strong> e <strong>anexos</strong> deste pet também serão excluídas.
+              Essa ação não pode ser desfeita.
             </Alert>
           </DialogContent>
           <DialogActions>
