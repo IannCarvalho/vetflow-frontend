@@ -3,15 +3,32 @@
  *
  * Provides React Query hooks for catalog item (services/products) data.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import * as catalogApi from '../api/catalogApi';
+import { createEntityHooks } from './createEntityHooks';
 
 import type { CatalogItem, CatalogItemType } from '../types';
 
 const CATALOG_QUERY_KEY = ['catalog'] as const;
 
 type CreateCatalogItemInput = Omit<CatalogItem, 'id' | 'created_at' | 'updated_at'>;
+
+// As consultas do catálogo fogem do molde padrão (getAll aceita um filtro por
+// tipo e usa chave própria), então apenas as mutations são geradas pela
+// fábrica — com invalidação só da chave base, como no comportamento histórico.
+const catalogHooks = createEntityHooks<CatalogItem, CreateCatalogItemInput>({
+  queryKey: CATALOG_QUERY_KEY,
+  detailKey: (id) => [...CATALOG_QUERY_KEY, id],
+  invalidateDetailOnUpdate: false,
+  api: {
+    getAll: () => catalogApi.getCatalogItems(),
+    getById: catalogApi.getCatalogItemById,
+    create: catalogApi.createCatalogItem,
+    update: catalogApi.updateCatalogItem,
+    remove: catalogApi.deleteCatalogItem,
+  },
+});
 
 /**
  * Hook to fetch all catalog items, optionally filtered by type
@@ -35,42 +52,14 @@ export const useGetCatalogItemById = (id: string | undefined) =>
 /**
  * Hook to create a new catalog item
  */
-export const useCreateCatalogItem = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateCatalogItemInput) => catalogApi.createCatalogItem(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEY });
-    },
-  });
-};
+export const useCreateCatalogItem = catalogHooks.useCreate;
 
 /**
  * Hook to update an existing catalog item
  */
-export const useUpdateCatalogItem = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CatalogItem> }) =>
-      catalogApi.updateCatalogItem(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEY });
-    },
-  });
-};
+export const useUpdateCatalogItem = catalogHooks.useUpdate;
 
 /**
  * Hook to delete a catalog item
  */
-export const useDeleteCatalogItem = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => catalogApi.deleteCatalogItem(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEY });
-    },
-  });
-};
+export const useDeleteCatalogItem = catalogHooks.useDelete;
