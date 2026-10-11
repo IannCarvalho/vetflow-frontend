@@ -23,7 +23,11 @@ import CircularProgress from '@mui/material/CircularProgress';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetPets } from 'src/hooks/usePetsQuery';
-import { useGetAppointments, useDeleteAppointment } from 'src/hooks/useAppointmentsQuery';
+import {
+  useGetAppointments,
+  useUpdateAppointment,
+  useDeleteAppointment,
+} from 'src/hooks/useAppointmentsQuery';
 
 import { getApiErrorMessage } from 'src/utils/api-error';
 
@@ -33,6 +37,7 @@ import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
 
 import AppointmentFormDialog from 'src/sections/appointments/appointment-form-dialog';
+import ConsultationFormDialog from 'src/sections/consultations/consultation-form-dialog';
 import {
   APPOINTMENT_TYPE_LABELS,
   APPOINTMENT_STATUS_LABELS,
@@ -78,6 +83,7 @@ export default function AgendaPage() {
   const { data: appointments, isLoading } = useGetAppointments();
   const { data: pets } = useGetPets();
   const deleteMutation = useDeleteAppointment();
+  const updateMutation = useUpdateAppointment();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'upcoming' | AppointmentStatus>('upcoming');
@@ -85,6 +91,7 @@ export default function AgendaPage() {
   const [toEdit, setToEdit] = useState<Appointment | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [toDelete, setToDelete] = useState<string | null>(null);
+  const [consultationFor, setConsultationFor] = useState<Appointment | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -191,6 +198,30 @@ export default function AgendaPage() {
 
   const handleCloseSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
 
+  const handleRegisterConsultation = useCallback((appointment: Appointment) => {
+    setConsultationFor(appointment);
+  }, []);
+
+  const handleCloseConsultation = useCallback(() => {
+    setConsultationFor(null);
+  }, []);
+
+  const handleConsultationSuccess = useCallback(
+    (message: string) => {
+      const appointment = consultationFor;
+      setSnackbar({ open: true, message, severity: 'success' });
+      setConsultationFor(null);
+
+      // Após registrar o atendimento, conclui o agendamento (se ainda não estiver
+      // concluído). Fire-and-forget: a falha não bloqueia o sucesso da consulta,
+      // apenas invalida silenciosamente — o atendimento clínico já foi criado.
+      if (appointment && appointment.status !== 'completed') {
+        updateMutation.mutate({ id: appointment.id, data: { status: 'completed' } });
+      }
+    },
+    [consultationFor, updateMutation]
+  );
+
   return (
     <>
       <title>Agenda - VetFlow</title>
@@ -281,6 +312,16 @@ export default function AgendaPage() {
 
                         <RowActions
                           actions={[
+                            ...(a.status !== 'cancelled'
+                              ? [
+                                  {
+                                    key: 'consultation',
+                                    label: 'Registrar atendimento',
+                                    icon: 'solar:stethoscope-bold' as const,
+                                    onClick: () => handleRegisterConsultation(a),
+                                  },
+                                ]
+                              : []),
                             {
                               key: 'edit',
                               label: 'Editar',
@@ -318,6 +359,13 @@ export default function AgendaPage() {
           onClose={handleCloseForm}
           appointment={toEdit}
           onSuccess={handleFormSuccess}
+        />
+
+        <ConsultationFormDialog
+          open={Boolean(consultationFor)}
+          onClose={handleCloseConsultation}
+          onSuccess={handleConsultationSuccess}
+          initialData={consultationFor ? { pet_id: consultationFor.pet_id } : undefined}
         />
 
         <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
