@@ -12,13 +12,11 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -33,6 +31,7 @@ import { useGetPets, useDeletePet } from 'src/hooks/usePetsQuery';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 
 import PetFormDialog from 'src/sections/pets/pet-form-dialog';
 
@@ -183,38 +182,37 @@ export default function ClientPetsPage() {
                       <TableCell>{pet.sex === 'male' ? 'Macho' : 'Fêmea'}</TableCell>
                       <TableCell>{pet.weight}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Editar">
-                          <IconButton size="small" onClick={() => handleEditPet(pet)}>
-                            <Iconify icon="solar:pen-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Consultas">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewConsultations(pet.id)}
-                            color="warning"
-                          >
-                            <Iconify icon="solar:medical-visit-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Vacinas">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewVaccines(pet.id)}
-                            color="warning"
-                          >
-                            <Iconify icon="solar:vaccine-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Deletar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteClick(pet.id)}
-                            color="error"
-                          >
-                            <Iconify icon="solar:trash-bin-trash-bold" />
-                          </IconButton>
-                        </Tooltip>
+                        <RowActions
+                          actions={[
+                            {
+                              key: 'edit',
+                              label: 'Editar',
+                              icon: 'solar:pen-bold',
+                              onClick: () => handleEditPet(pet),
+                            },
+                            {
+                              key: 'consultas',
+                              label: 'Ver consultas',
+                              icon: 'solar:medical-visit-bold',
+                              color: 'warning',
+                              onClick: () => handleViewConsultations(pet.id),
+                            },
+                            {
+                              key: 'vacinas',
+                              label: 'Ver vacinas',
+                              icon: 'solar:vaccine-bold',
+                              color: 'warning',
+                              onClick: () => handleViewVaccines(pet.id),
+                            },
+                            {
+                              key: 'delete',
+                              label: 'Deletar',
+                              icon: 'solar:trash-bin-trash-bold',
+                              destructive: true,
+                              onClick: () => handleDeleteClick(pet.id),
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
