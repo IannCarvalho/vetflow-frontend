@@ -24,14 +24,16 @@ import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useEntityForm } from 'src/hooks/useEntityForm';
 import { useCreateConsultation, useUpdateConsultation } from 'src/hooks/useConsultationsQuery';
 
-import { RHFTextField } from 'src/components/form';
+import { RHFSelect, RHFTextField } from 'src/components/form';
 
 // -----------------------------------------------------------------------
 
 const consultationSchema = yup.object({
+  pet_id: yup.string().required('Pet é obrigatório'),
   date: yup.string().required('Data é obrigatória'),
   return_date: yup.string(),
   // Summary
@@ -61,6 +63,7 @@ const consultationSchema = yup.object({
 });
 
 interface ConsultationFormValues {
+  pet_id: string;
   date: string;
   return_date: string;
   summary_evolution_time: string;
@@ -96,6 +99,7 @@ interface ConsultationFormDialogProps {
 const steps = ['Resumo', 'Anamnese', 'Dieta', 'Fisiológico'];
 
 const DEFAULTS: ConsultationFormValues = {
+  pet_id: '',
   date: new Date().toISOString().split('T')[0],
   return_date: '',
   summary_evolution_time: '',
@@ -131,6 +135,10 @@ export default function ConsultationFormDialog({
   const createMutation = useCreateConsultation();
   const updateMutation = useUpdateConsultation();
 
+  const fixedPetId = initialData?.pet_id;
+  const needsPetPicker = !consultation && !fixedPetId;
+  const { data: pets } = useGetPets();
+
   const { control, isLoading, isEdit, submitError, clearError, onSubmit } = useEntityForm<
     ConsultationFormValues,
     ConsultationPayload,
@@ -139,10 +147,11 @@ export default function ConsultationFormDialog({
     createMutation,
     updateMutation,
     schema: consultationSchema,
-    defaultValues: DEFAULTS,
+    defaultValues: { ...DEFAULTS, pet_id: fixedPetId ?? '' },
     entity: consultation,
     resetDeps: [initialData, open],
     toFormValues: (c) => ({
+      pet_id: c.pet_id,
       date: c.date,
       return_date: c.return_date || '',
       summary_evolution_time: c.summary?.evolution_time || '',
@@ -166,8 +175,8 @@ export default function ConsultationFormDialog({
       physiological_vomiting: c.physiological?.vomiting || false,
       physiological_respiratory_issues: c.physiological?.respiratory_issues || false,
     }),
-    beforeSubmit: () => {
-      const petId = consultation?.pet_id || initialData?.pet_id;
+    beforeSubmit: (data) => {
+      const petId = consultation?.pet_id || initialData?.pet_id || data.pet_id;
       return petId ? undefined : 'Não foi possível identificar o pet desta consulta.';
     },
     toPayload: (data) => buildPayload(data, consultation, initialData),
@@ -206,6 +215,17 @@ export default function ConsultationFormDialog({
       case 0: // Resumo
         return (
           <Stack spacing={2}>
+            {needsPetPicker && (
+              <RHFSelect
+                name="pet_id"
+                control={control}
+                label="Pet"
+                fullWidth
+                options={(pets ?? []).map((p) => ({ value: p.id, label: p.name }))}
+                emptyLabel="Nenhum pet cadastrado"
+              />
+            )}
+
             <RHFTextField
               name="date"
               control={control}
@@ -467,7 +487,7 @@ function buildPayload(
   consultation: Consultation | null | undefined,
   initialData?: { pet_id: string }
 ): ConsultationPayload {
-  const petId = (consultation?.pet_id || initialData?.pet_id) as string;
+  const petId = (consultation?.pet_id || initialData?.pet_id || data.pet_id) as string;
 
   return {
     pet_id: petId,
