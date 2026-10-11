@@ -11,19 +11,14 @@ import Table from '@mui/material/Table';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import TableRow from '@mui/material/TableRow';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
-import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useGetPets, useDeletePet } from 'src/hooks/usePetsQuery';
@@ -32,6 +27,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
+import { ConfirmDeleteDialog } from 'src/components/list';
 
 import PetFormDialog from 'src/sections/pets/pet-form-dialog';
 
@@ -65,6 +61,11 @@ export default function ClientPetsPage() {
   const clientPets = useMemo(
     () => pets?.filter((pet) => pet.owner_id === clientId) || [],
     [pets, clientId]
+  );
+
+  const petPendingDeletion = useMemo(
+    () => clientPets.find((p) => p.id === petToDelete) ?? null,
+    [clientPets, petToDelete]
   );
 
   const handleAddPet = useCallback(() => {
@@ -223,18 +224,26 @@ export default function ClientPetsPage() {
         />
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
-          <DialogContent>
-            <DialogContentText>Essa ação não pode ser desfeita.</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <ConfirmDeleteDialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+          isPending={deleteClientMutation.isPending}
+          title="Excluir pet?"
+          description={
+            <>
+              Você está prestes a excluir{' '}
+              <strong>{petPendingDeletion?.name ?? 'este pet'}</strong>.
+            </>
+          }
+          warning={
+            <>
+              Todas as <strong>consultas</strong>, <strong>vacinas</strong>, <strong>receitas</strong>{' '}
+              e <strong>anexos</strong> deste pet também serão excluídas. Essa ação não pode ser
+              desfeita.
+            </>
+          }
+        />
 
         {/* Snackbar */}
         <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
