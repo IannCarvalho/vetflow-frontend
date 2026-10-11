@@ -38,58 +38,58 @@ export const themeConfig: ThemeConfig = {
    *************************************** */
   palette: {
     primary: {
-      lighter: '#E0F2FE',
-      light: '#7DD3FC',
-      main: '#0284C7',
-      dark: '#0369A1',
-      darker: '#082F49',
+      lighter: '#E3F1EA',
+      light: '#7FBCA1',
+      main: '#2E7D5B',
+      dark: '#1F5B41',
+      darker: '#123828',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      lighter: '#DCFCE7',
-      light: '#86EFAC',
-      main: '#16A34A',
-      dark: '#15803D',
-      darker: '#14532D',
+      lighter: '#F7E7DD',
+      light: '#DBA488',
+      main: '#C2683A',
+      dark: '#9A4F2B',
+      darker: '#5E301A',
       contrastText: '#FFFFFF',
     },
     info: {
-      lighter: '#CAFDF5',
-      light: '#61F3F3',
-      main: '#00B8D9',
-      dark: '#006C9C',
-      darker: '#003768',
+      lighter: '#D6E6F7',
+      light: '#6FA8E0',
+      main: '#1565C0',
+      dark: '#0D4A94',
+      darker: '#082E5C',
       contrastText: '#FFFFFF',
     },
     success: {
-      lighter: '#D3FCD2',
-      light: '#77ED8B',
-      main: '#22C55E',
-      dark: '#118D57',
-      darker: '#065E49',
+      lighter: '#E3F1EA',
+      light: '#7FBCA1',
+      main: '#2E7D5B',
+      dark: '#1F5B41',
+      darker: '#123828',
       contrastText: '#ffffff',
     },
     warning: {
-      lighter: '#FFF5CC',
-      light: '#FFD666',
-      main: '#FFAB00',
-      dark: '#B76E00',
-      darker: '#7A4100',
-      contrastText: '#1C252E',
+      lighter: '#FBECCF',
+      light: '#E0A24D',
+      main: '#A05F00',
+      dark: '#8A5100',
+      darker: '#573200',
+      contrastText: '#FFFFFF',
     },
     error: {
-      lighter: '#FFE9D5',
-      light: '#FFAC82',
-      main: '#FF5630',
-      dark: '#B71D18',
-      darker: '#7A0916',
+      lighter: '#F9DCDC',
+      light: '#E08383',
+      main: '#C62828',
+      dark: '#991E1E',
+      darker: '#5E1212',
       contrastText: '#FFFFFF',
     },
     grey: {
-      '50': '#F5FBFF', // Azul muito claro
-      '100': '#F0F9FE', // Azul suave
-      '200': '#E8F5FF', // Azul mais claro
-      '300': '#D4E6F0', // Azul tom médio
+      '50': '#FAF9F7', // Neutro-quente muito claro (leve sépia)
+      '100': '#F5F3EF', // Neutro-quente suave
+      '200': '#EEEBE4', // Bege-neutro claro
+      '300': '#E0DBD1', // Bege-neutro tom médio
       '400': '#C4CDD5',
       '500': '#919EAB',
       '600': '#637381',

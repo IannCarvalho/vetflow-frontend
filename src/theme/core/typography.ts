@@ -15,6 +15,8 @@ import { themeConfig } from '../theme-config';
 export type FontStyleExtend = {
   fontWeightSemiBold: CSSObject['fontWeight'];
   fontSecondaryFamily: CSSObject['fontFamily'];
+  heroDisplay: CSSObject;
+  bigNumber: CSSObject;
 };
 
 export type ResponsiveFontSizesInput = Partial<Record<Breakpoint, number>>;
@@ -116,12 +118,31 @@ export const typography: TypographyVariantsOptions = {
     fontWeight: 700,
     lineHeight: 1.5,
     fontSize: pxToRem(12),
-    textTransform: 'uppercase',
   },
   button: {
     fontWeight: 700,
     lineHeight: 24 / 14,
     fontSize: pxToRem(14),
     textTransform: 'unset',
+  },
+  /**
+   * Presets reutilizáveis (não substituem h1-h6).
+   * heroDisplay: título de destaque em Barlow 800 (32-40px).
+   * bigNumber: número grande em DM Sans 700 com algarismos tabulares.
+   */
+  heroDisplay: {
+    fontFamily: secondaryFont,
+    fontWeight: 800,
+    lineHeight: 1.1,
+    fontSize: pxToRem(32),
+    ...responsiveFontSizes({ md: 36, lg: 40 }),
+  },
+  bigNumber: {
+    fontFamily: primaryFont,
+    fontWeight: 700,
+    lineHeight: 1.2,
+    fontSize: pxToRem(32),
+    fontVariantNumeric: 'tabular-nums',
+    fontFeatureSettings: '"tnum"',
   },
 };

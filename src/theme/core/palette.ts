@@ -105,8 +105,8 @@ export const text = {
 export const background = {
   light: createPaletteChannel({
     paper: '#FFFFFF',
-    default: '#F0F9FE', // Azul bem suave da marca
-    neutral: '#E8F5FF', // Azul mais claro para dividers
+    default: '#FAF9F7', // Off-white neutro-quente (leve bege/sépia)
+    neutral: '#F3EFE9', // Bege-neutro suave para banda de header (token de banda)
   }),
   dark: createPaletteChannel({
     paper: grey[800],
