@@ -107,7 +107,7 @@ export default function PetProntuarioPage() {
 
         {isLoading ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <CircularProgress />
+            <CircularProgress aria-label="Carregando" />
           </Box>
         ) : (
           <Grid container spacing={3}>

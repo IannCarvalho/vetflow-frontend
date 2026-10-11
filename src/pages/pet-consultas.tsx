@@ -121,7 +121,7 @@ export default function PetConsultasPage() {
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
+              <CircularProgress aria-label="Carregando" />
             </Box>
           ) : petConsultations && petConsultations.length > 0 ? (
             <TableContainer>
