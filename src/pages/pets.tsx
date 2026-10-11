@@ -15,7 +15,6 @@ import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
@@ -24,7 +23,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -42,6 +40,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 
 import PetFormDialog from 'src/sections/pets/pet-form-dialog';
+import PetRowActions from 'src/sections/pets/pet-row-actions';
 
 const SPECIES_OPTIONS = ['Todos', 'Cachorro', 'Gato', 'Outros'];
 
@@ -305,65 +304,16 @@ export default function PetsPage() {
                       <TableCell>{pet.sex === 'male' ? 'Macho' : 'Fêmea'}</TableCell>
                       <TableCell>{clientNameMap[pet.owner_id] || 'N/A'}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Prontuário">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewProntuario(pet.id)}
-                            color="primary"
-                          >
-                            <Iconify icon="solar:clipboard-heart-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Editar">
-                          <IconButton size="small" onClick={() => handleEditPet(pet)}>
-                            <Iconify icon="solar:pen-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Consultas">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewConsultations(pet.id)}
-                            color="warning"
-                          >
-                            <Iconify icon="solar:medical-visit-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Vacinas">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewVaccines(pet.id)}
-                            color="warning"
-                          >
-                            <Iconify icon="solar:vaccine-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Receitas">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewPrescriptions(pet.id)}
-                            color="info"
-                          >
-                            <Iconify icon="solar:document-text-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Anexos">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewAttachments(pet.id)}
-                            color="info"
-                          >
-                            <Iconify icon="solar:paperclip-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Deletar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteClick(pet.id)}
-                            color="error"
-                          >
-                            <Iconify icon="solar:trash-bin-trash-bold" />
-                          </IconButton>
-                        </Tooltip>
+                        <PetRowActions
+                          petId={pet.id}
+                          onViewProntuario={handleViewProntuario}
+                          onEdit={() => handleEditPet(pet)}
+                          onViewConsultations={handleViewConsultations}
+                          onViewVaccines={handleViewVaccines}
+                          onViewPrescriptions={handleViewPrescriptions}
+                          onViewAttachments={handleViewAttachments}
+                          onDelete={handleDeleteClick}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
