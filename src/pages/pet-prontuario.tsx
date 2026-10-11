@@ -34,7 +34,7 @@ import type { IconifyName } from '../components/iconify/register-icons';
 
 function StatCard({ icon, label, value }: { icon: IconifyName; label: string; value: number }) {
   return (
-    <Card sx={{ p: 2.5, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+    <Card variant="flat" sx={{ p: 2.5 }}>
       <Stack direction="row" alignItems="center" spacing={2}>
         <Box
           sx={{
@@ -151,7 +151,7 @@ export default function PetProntuarioPage() {
                   value={vaccines?.length ?? 0}
                 />
 
-                <Card sx={{ p: 2.5, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+                <Card variant="flat" sx={{ p: 2.5 }}>
                   <Typography variant="subtitle1" sx={{ mb: 2 }}>
                     Dados do paciente
                   </Typography>
@@ -181,7 +181,7 @@ export default function PetProntuarioPage() {
 
             {/* Right column: unified timeline */}
             <Grid size={{ xs: 12, md: 8 }}>
-              <Card sx={{ p: 3, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+              <Card variant="flat" sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
                   Histórico
                 </Typography>

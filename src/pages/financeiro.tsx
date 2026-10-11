@@ -61,7 +61,7 @@ const STATUS_FILTERS: Array<{ value: 'all' | PaymentStatus; label: string }> = [
 
 function SummaryCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <Card sx={{ p: 2.5, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+    <Card variant="flat" sx={{ p: 2.5 }}>
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
@@ -243,7 +243,7 @@ export default function FinanceiroPage() {
           ))}
         </Stack>
 
-        <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+        <Card variant="flat">
           {isLoading ? (
             <TableContainer>
               <Table>
