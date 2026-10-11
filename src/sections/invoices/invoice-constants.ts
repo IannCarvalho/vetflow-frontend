@@ -38,7 +38,5 @@ export const PAYMENT_METHOD_OPTIONS = (
   Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]
 ).map((value) => ({ value, label: PAYMENT_METHOD_LABELS[value] }));
 
-/** Format a numeric amount as Brazilian Real. */
-export function formatBRL(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+/** Format a numeric amount as Brazilian Real. Re-exported from the shared util. */
+export { formatBRL } from 'src/utils/format-number';

@@ -26,6 +26,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { useCreatePrescription, useUpdatePrescription } from 'src/hooks/usePrescriptionsQuery';
 
+import { toDateInput } from 'src/utils/format-time';
 import { getApiErrorMessage } from 'src/utils/api-error';
 
 import { Iconify } from 'src/components/iconify';
@@ -71,12 +72,6 @@ interface PrescriptionFormDialogProps {
   prescription?: Prescription | null;
   onSuccess?: (message: string) => void;
   initialData?: { pet_id: string; consultation_id?: string };
-}
-
-function toDateInput(iso?: string): string {
-  if (!iso) return new Date().toISOString().split('T')[0];
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? new Date().toISOString().split('T')[0] : d.toISOString().split('T')[0];
 }
 
 export default function PrescriptionFormDialog({

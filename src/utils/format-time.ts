@@ -90,3 +90,41 @@ export function fToNow(date: DatePickerFormat): string {
 
   return dayjs(date).toNow(true);
 }
+
+// ----------------------------------------------------------------------
+
+/**
+ * Convert an ISO timestamp to the `YYYY-MM-DD` value expected by
+ * <input type="date">. Falls back to today's date for empty/invalid input.
+ */
+export function toDateInput(iso?: string): string {
+  if (!iso) return new Date().toISOString().split('T')[0];
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? new Date().toISOString().split('T')[0]
+    : d.toISOString().split('T')[0];
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * Convert an ISO timestamp to the `YYYY-MM-DDTHH:mm` value expected by
+ * <input type="datetime-local"> in the user's local timezone.
+ */
+export function toLocalInputValue(iso?: string): string {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+// ----------------------------------------------------------------------
+
+/** Default datetime-local value: next round hour, one hour long. */
+export function defaultStart(): string {
+  const d = new Date();
+  d.setMinutes(0, 0, 0);
+  d.setHours(d.getHours() + 1);
+  return toLocalInputValue(d.toISOString());
+}
