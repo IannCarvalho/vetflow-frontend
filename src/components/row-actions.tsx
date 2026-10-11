@@ -92,6 +92,7 @@ export default function RowActions({ actions, maxInline = 2 }: RowActionsProps) 
           onClick={action.onClick}
           color={color}
           disabled={action.disabled || action.loading}
+          aria-label={action.label}
         >
           {actionGlyph(action)}
         </IconButton>
