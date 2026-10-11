@@ -11,15 +11,11 @@ import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import TableRow from '@mui/material/TableRow';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -34,6 +30,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
+import { ConfirmDeleteDialog } from 'src/components/list';
 
 import PetHeader from 'src/sections/pets/pet-header';
 import PrescriptionFormDialog from 'src/sections/prescriptions/prescription-form-dialog';
@@ -65,6 +62,8 @@ export default function PetReceitasPage() {
 
   const currentPet = allPets?.find((p) => p.id === petId);
   const ownerName = allClients?.find((c) => c.id === currentPet?.owner_id)?.full_name;
+
+  const prescriptionPendingDeletion = prescriptions?.find((p) => p.id === toDelete) ?? null;
 
   const handleNew = useCallback(() => {
     setToEdit(null);
@@ -218,18 +217,25 @@ export default function PetReceitasPage() {
           vetName={user?.name}
         />
 
-        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
-          <DialogContent>
-            <Alert severity="warning">Essa ação não pode ser desfeita.</Alert>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <ConfirmDeleteDialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+          isPending={deleteMutation.isPending}
+          title="Excluir receituário?"
+          description={
+            prescriptionPendingDeletion && (
+              <>
+                Você está prestes a excluir o receituário de{' '}
+                <strong>
+                  {new Date(prescriptionPendingDeletion.date).toLocaleDateString('pt-BR')}
+                </strong>
+                .
+              </>
+            )
+          }
+          warning="Essa ação não pode ser desfeita."
+        />
 
         <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
           <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>

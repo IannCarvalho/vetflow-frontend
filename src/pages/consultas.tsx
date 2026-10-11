@@ -11,7 +11,6 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import TableRow from '@mui/material/TableRow';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
@@ -20,9 +19,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
@@ -35,6 +31,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
+import { ConfirmDeleteDialog } from 'src/components/list';
 
 import ConsultationFormDialog from 'src/sections/consultations/consultation-form-dialog';
 import ConsultationReportDialog from 'src/sections/consultations/consultation-report-dialog';
@@ -71,6 +68,11 @@ export default function ConsultasPage() {
   }, [allPets]);
 
   const getPetName = (petId: string) => petNameById.get(petId) ?? 'Pet removido';
+
+  const consultationPendingDeletion = useMemo(
+    () => (allConsultations ?? []).find((c) => c.id === consultationToDelete) ?? null,
+    [allConsultations, consultationToDelete]
+  );
 
   const visibleConsultations = useMemo(() => {
     let result = allConsultations ?? [];
@@ -287,18 +289,22 @@ export default function ConsultasPage() {
         />
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
-          <DialogContent>
-            <Alert severity="warning">Essa ação não pode ser desfeita.</Alert>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <ConfirmDeleteDialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+          isPending={deleteConsultationMutation.isPending}
+          title="Excluir consulta?"
+          description={
+            consultationPendingDeletion && (
+              <>
+                Você está prestes a excluir a consulta de{' '}
+                <strong>{getPetName(consultationPendingDeletion.pet_id)}</strong>.
+              </>
+            )
+          }
+          warning="Essa ação não pode ser desfeita."
+        />
 
         {/* Snackbar */}
         <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
