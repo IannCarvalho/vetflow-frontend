@@ -5,18 +5,15 @@ import RowActions, { type RowAction } from 'src/components/row-actions';
 /**
  * Row actions for the pets table.
  *
- * Thin wrapper over the generic {@link RowActions}: keeps Prontuário and Editar
- * inline and folds Consultas/Vacinas/Receitas/Anexos plus Deletar into the
- * overflow kebab menu.
+ * The per-pet sections (Consultas, Vacinas, Receitas, Anexos) are no longer
+ * separate row destinations: they live as tabs inside the Prontuário, which is
+ * now the single hub for one pet. So the row keeps just three actions —
+ * Prontuário (the hub), Editar and Deletar.
  */
 type PetRowActionsProps = {
   petId: string;
   onViewProntuario: (petId: string) => void;
   onEdit: () => void;
-  onViewConsultations: (petId: string) => void;
-  onViewVaccines: (petId: string) => void;
-  onViewPrescriptions: (petId: string) => void;
-  onViewAttachments: (petId: string) => void;
   onDelete: (petId: string) => void;
 };
 
@@ -24,10 +21,6 @@ export default function PetRowActions({
   petId,
   onViewProntuario,
   onEdit,
-  onViewConsultations,
-  onViewVaccines,
-  onViewPrescriptions,
-  onViewAttachments,
   onDelete,
 }: PetRowActionsProps) {
   const actions = useMemo<RowAction[]>(
@@ -46,30 +39,6 @@ export default function PetRowActions({
         onClick: onEdit,
       },
       {
-        key: 'consultas',
-        label: 'Ver consultas',
-        icon: 'solar:medical-visit-bold',
-        onClick: () => onViewConsultations(petId),
-      },
-      {
-        key: 'vacinas',
-        label: 'Ver vacinas',
-        icon: 'solar:vaccine-bold',
-        onClick: () => onViewVaccines(petId),
-      },
-      {
-        key: 'receitas',
-        label: 'Ver receitas',
-        icon: 'solar:document-text-bold',
-        onClick: () => onViewPrescriptions(petId),
-      },
-      {
-        key: 'anexos',
-        label: 'Ver anexos',
-        icon: 'solar:paperclip-bold',
-        onClick: () => onViewAttachments(petId),
-      },
-      {
         key: 'delete',
         label: 'Deletar',
         icon: 'solar:trash-bin-trash-bold',
@@ -77,16 +46,7 @@ export default function PetRowActions({
         onClick: () => onDelete(petId),
       },
     ],
-    [
-      petId,
-      onViewProntuario,
-      onEdit,
-      onViewConsultations,
-      onViewVaccines,
-      onViewPrescriptions,
-      onViewAttachments,
-      onDelete,
-    ]
+    [petId, onViewProntuario, onEdit, onDelete]
   );
 
   return <RowActions actions={actions} maxInline={2} />;

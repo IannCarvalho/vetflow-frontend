@@ -1,14 +1,13 @@
+import { useParams } from 'react-router-dom';
 /**
  * Pet Attachments Page
  * Lists a pet's exams/images/reports with upload, download/preview and delete.
  */
 import { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -18,14 +17,12 @@ import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useDeleteAttachment, useGetAttachmentsByPetId } from 'src/hooks/useAttachmentsQuery';
 
 import { getApiErrorMessage } from 'src/utils/api-error';
@@ -36,6 +33,7 @@ import { getAttachmentContent } from 'src/api/attachmentsApi';
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
 
+import PetHeader from 'src/sections/pets/pet-header';
 import AttachmentUploadDialog from 'src/sections/attachments/attachment-upload-dialog';
 
 import type { AttachmentCategory } from '../types';
@@ -65,8 +63,6 @@ function openBase64InNewTab(mimeType: string, base64: string) {
 
 export default function PetAnexosPage() {
   const { petId } = useParams();
-  const navigate = useNavigate();
-  const { data: allPets } = useGetPets();
   const { data: attachments, isLoading } = useGetAttachmentsByPetId(petId);
   const deleteMutation = useDeleteAttachment(petId);
 
@@ -79,8 +75,6 @@ export default function PetAnexosPage() {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
-
-  const currentPet = allPets?.find((p) => p.id === petId);
 
   const handleView = useCallback(async (id: string) => {
     setDownloadingId(id);
@@ -132,21 +126,17 @@ export default function PetAnexosPage() {
     <>
       <title>Anexos - VetFlow</title>
       <DashboardContent maxWidth="lg">
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Button color="inherit" variant="text" onClick={() => navigate('/pets')}>
-              ← Voltar
+        <PetHeader
+          action={
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="solar:upload-bold" />}
+              onClick={() => setOpenUpload(true)}
+            >
+              Novo Anexo
             </Button>
-            <Typography variant="h4">Anexos de {currentPet?.name || 'Carregando...'}</Typography>
-          </Stack>
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="solar:upload-bold" />}
-            onClick={() => setOpenUpload(true)}
-          >
-            Novo Anexo
-          </Button>
-        </Stack>
+          }
+        />
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (

@@ -1,14 +1,13 @@
+import { useParams } from 'react-router-dom';
 /**
  * Pet Prescriptions Page
  * Displays all prescriptions (receituários) for a specific pet, with create,
  * edit, delete and a printable report.
  */
 import { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -18,7 +17,6 @@ import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -37,6 +35,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
 
+import PetHeader from 'src/sections/pets/pet-header';
 import PrescriptionFormDialog from 'src/sections/prescriptions/prescription-form-dialog';
 import PrescriptionReportDialog from 'src/sections/prescriptions/prescription-report-dialog';
 
@@ -46,7 +45,6 @@ import type { Prescription } from '../types';
 
 export default function PetReceitasPage() {
   const { petId } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: allPets } = useGetPets();
   const { data: allClients } = useGetClients();
@@ -125,21 +123,17 @@ export default function PetReceitasPage() {
     <>
       <title>Receitas - VetFlow</title>
       <DashboardContent maxWidth="lg">
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Button color="inherit" variant="text" onClick={() => navigate('/pets')}>
-              ← Voltar
+        <PetHeader
+          action={
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={handleNew}
+            >
+              Novo Receituário
             </Button>
-            <Typography variant="h4">Receitas de {currentPet?.name || 'Carregando...'}</Typography>
-          </Stack>
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={handleNew}
-          >
-            Novo Receituário
-          </Button>
-        </Stack>
+          }
+        />
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
