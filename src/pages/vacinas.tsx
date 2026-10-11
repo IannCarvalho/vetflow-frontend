@@ -6,30 +6,18 @@
 import { useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
-import TableRow from '@mui/material/TableRow';
-import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
-import TableBody from '@mui/material/TableBody';
+import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
-import DialogContentText from '@mui/material/DialogContentText';
 
+import { useListPage } from 'src/hooks/useListPage';
 import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useGetVaccines, useDeleteVaccine } from 'src/hooks/useVaccinesQuery';
 
@@ -38,6 +26,7 @@ import { getApiErrorMessage } from 'src/utils/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { ListTableShell, ConfirmDeleteDialog } from 'src/components/list';
 
 import VaccineFormDialog from 'src/sections/vaccines/vaccine-form-dialog';
 
@@ -57,19 +46,24 @@ export default function VacinasPage() {
   const { data: allPets } = useGetPets();
   const deleteVaccineMutation = useDeleteVaccine();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const {
+    searchTerm,
+    setSearchTerm,
+    page,
+    setPage,
+    rowsPerPage,
+    setRowsPerPage,
+    paginate,
+    snackbar,
+    notify,
+    closeSnackbar,
+  } = useListPage();
+
   const [filter, setFilter] = useState<FilterOption>('Todas');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openForm, setOpenForm] = useState(false);
   const [vaccineToEdit, setVaccineToEdit] = useState<Vaccine | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [vaccineToDelete, setVaccineToDelete] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({ open: false, message: '', severity: 'success' });
 
   const now = useMemo(() => new Date(), []);
 
@@ -123,8 +117,8 @@ export default function VacinasPage() {
 
   // Current page slice of the already-filtered list (pagination is client-side)
   const paginatedVaccines = useMemo(
-    () => visibleVaccines.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [visibleVaccines, page, rowsPerPage]
+    () => paginate(visibleVaccines),
+    [paginate, visibleVaccines]
   );
 
   const handleEdit = useCallback((vaccine: Vaccine) => {
@@ -139,10 +133,10 @@ export default function VacinasPage() {
 
   const handleFormSuccess = useCallback(
     (message: string) => {
-      setSnackbar({ open: true, message, severity: 'success' });
+      notify(message, 'success');
       handleCloseForm();
     },
-    [handleCloseForm]
+    [handleCloseForm, notify]
   );
 
   const handleDeleteClick = useCallback((id: string) => {
@@ -154,21 +148,15 @@ export default function VacinasPage() {
     if (!vaccineToDelete) return;
     deleteVaccineMutation.mutate(vaccineToDelete, {
       onSuccess: () => {
-        setSnackbar({ open: true, message: 'Vacinação deletada com sucesso!', severity: 'success' });
+        notify('Vacinação deletada com sucesso!', 'success');
         setOpenDeleteDialog(false);
         setVaccineToDelete(null);
       },
       onError: (error) => {
-        setSnackbar({
-          open: true,
-          message: getApiErrorMessage(error, 'Erro ao deletar vacinação'),
-          severity: 'error',
-        });
+        notify(getApiErrorMessage(error, 'Erro ao deletar vacinação'), 'error');
       },
     });
-  }, [vaccineToDelete, deleteVaccineMutation]);
-
-  const handleCloseSnackbar = () => setSnackbar((s) => ({ ...s, open: false }));
+  }, [vaccineToDelete, deleteVaccineMutation, notify]);
 
   return (
     <>
@@ -181,10 +169,7 @@ export default function VacinasPage() {
         <TextField
           placeholder="Buscar por vacina, fabricante ou pet..."
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setPage(0);
-          }}
+          onChange={(e) => setSearchTerm(e.target.value)}
           fullWidth
           sx={{ mb: 3 }}
           slotProps={{
@@ -211,143 +196,76 @@ export default function VacinasPage() {
           ))}
         </Stack>
 
-        <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
-          {isLoading ? (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
-                    <TableCell>Pet</TableCell>
-                    <TableCell>Vacina</TableCell>
-                    <TableCell>Fabricante</TableCell>
-                    <TableCell>Lote</TableCell>
-                    <TableCell>Data Aplicação</TableCell>
-                    <TableCell>Próxima Dose</TableCell>
-                    <TableCell align="right">Ações</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Skeleton variant="text" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          ) : visibleVaccines.length > 0 ? (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: 'background.neutral' }}>
-                    <TableCell>Pet</TableCell>
-                    <TableCell>Vacina</TableCell>
-                    <TableCell>Fabricante</TableCell>
-                    <TableCell>Lote</TableCell>
-                    <TableCell>Data Aplicação</TableCell>
-                    <TableCell>Próxima Dose</TableCell>
-                    <TableCell align="right">Ações</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {paginatedVaccines.map((v) => {
-                    const remaining = v.next_dose_date ? daysUntil(v.next_dose_date) : null;
-                    const upcoming = isUpcoming(v);
-                    const urgent = remaining !== null && remaining <= URGENT_THRESHOLD_DAYS;
-                    return (
-                      <TableRow key={v.id} hover>
-                        <TableCell>{getPetName(v.pet_id)}</TableCell>
-                        <TableCell>{v.vaccine_name}</TableCell>
-                        <TableCell>{v.manufacturer || '-'}</TableCell>
-                        <TableCell>{v.batch || '-'}</TableCell>
-                        <TableCell>
-                          {new Date(v.date_applied).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell>
-                          {v.next_dose_date ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              {new Date(v.next_dose_date).toLocaleDateString('pt-BR')}
-                              {upcoming && (
-                                <Chip
-                                  size="small"
-                                  label={
-                                    remaining !== null && remaining <= 0
-                                      ? 'Hoje'
-                                      : `${remaining} ${remaining === 1 ? 'dia' : 'dias'}`
-                                  }
-                                  color={urgent ? 'error' : 'warning'}
-                                  variant={urgent ? 'filled' : 'outlined'}
-                                />
-                              )}
-                            </Box>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="Editar">
-                            <IconButton size="small" onClick={() => handleEdit(v)}>
-                              <Iconify icon="solar:pen-bold" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Deletar">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteClick(v.id)}
-                              color="error"
-                            >
-                              <Iconify icon="solar:trash-bin-trash-bold" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <TablePagination
-                component="div"
-                count={visibleVaccines.length}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-                onPageChange={(_, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(e) => {
-                  setRowsPerPage(parseInt(e.target.value, 10));
-                  setPage(0);
-                }}
-                labelRowsPerPage="Linhas por página:"
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-              />
-            </TableContainer>
-          ) : (
-            <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-              {filter === 'A vencer (30 dias)'
-                ? 'Nenhuma vacina a vencer nos próximos 30 dias'
-                : 'Nenhuma vacinação registrada'}
-            </Box>
-          )}
-        </Card>
+        <ListTableShell
+          columns={[
+            { label: 'Pet' },
+            { label: 'Vacina' },
+            { label: 'Fabricante' },
+            { label: 'Lote' },
+            { label: 'Data Aplicação' },
+            { label: 'Próxima Dose' },
+            { label: 'Ações', align: 'right' },
+          ]}
+          rows={visibleVaccines}
+          pageRows={paginatedVaccines}
+          isLoading={isLoading}
+          emptyMessage={
+            filter === 'A vencer (30 dias)'
+              ? 'Nenhuma vacina a vencer nos próximos 30 dias'
+              : 'Nenhuma vacinação registrada'
+          }
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={setPage}
+          onRowsPerPageChange={setRowsPerPage}
+          renderRow={(v) => {
+            const remaining = v.next_dose_date ? daysUntil(v.next_dose_date) : null;
+            const upcoming = isUpcoming(v);
+            const urgent = remaining !== null && remaining <= URGENT_THRESHOLD_DAYS;
+            return (
+              <TableRow key={v.id} hover>
+                <TableCell>{getPetName(v.pet_id)}</TableCell>
+                <TableCell>{v.vaccine_name}</TableCell>
+                <TableCell>{v.manufacturer || '-'}</TableCell>
+                <TableCell>{v.batch || '-'}</TableCell>
+                <TableCell>{new Date(v.date_applied).toLocaleDateString('pt-BR')}</TableCell>
+                <TableCell>
+                  {v.next_dose_date ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {new Date(v.next_dose_date).toLocaleDateString('pt-BR')}
+                      {upcoming && (
+                        <Chip
+                          size="small"
+                          label={
+                            remaining !== null && remaining <= 0
+                              ? 'Hoje'
+                              : `${remaining} ${remaining === 1 ? 'dia' : 'dias'}`
+                          }
+                          color={urgent ? 'error' : 'warning'}
+                          variant={urgent ? 'filled' : 'outlined'}
+                        />
+                      )}
+                    </Box>
+                  ) : (
+                    '-'
+                  )}
+                </TableCell>
+                <TableCell align="right">
+                  <Tooltip title="Editar">
+                    <IconButton size="small" onClick={() => handleEdit(v)}>
+                      <Iconify icon="solar:pen-bold" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Deletar">
+                    <IconButton size="small" onClick={() => handleDeleteClick(v.id)} color="error">
+                      <Iconify icon="solar:trash-bin-trash-bold" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            );
+          }}
+        />
 
         {/* Edit dialog (creation happens from a specific pet's page) */}
         <VaccineFormDialog
@@ -358,22 +276,16 @@ export default function VacinasPage() {
         />
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
-          <DialogContent>
-            <DialogContentText>Essa ação não pode ser desfeita.</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <ConfirmDeleteDialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+          description="Essa ação não pode ser desfeita."
+        />
 
         {/* Snackbar */}
-        <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={closeSnackbar}>
+          <Alert onClose={closeSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>
