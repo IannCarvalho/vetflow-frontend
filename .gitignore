@@ -40,3 +40,8 @@ knip.jsonc
 
 # agent workflow artifacts (plans, reviews, task notes)
 .agents
+
+# Playwright a11y gate
+test-results/
+playwright-report/
+.playwright/
