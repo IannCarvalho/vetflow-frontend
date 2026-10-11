@@ -8,6 +8,7 @@ import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { Iconify } from 'src/components/iconify';
 import { type IconifyName } from 'src/components/iconify/register-icons';
@@ -25,6 +26,10 @@ import { type IconifyName } from 'src/components/iconify/register-icons';
  * - Destructive actions (`destructive: true`) always go into the menu, below a
  *   divider and tinted red, to keep them away from accidental clicks -- unless
  *   everything fits inline, in which case they stay inline tinted red.
+ *
+ * An action can be `disabled` and/or `loading`; a loading action shows a
+ * spinner in place of its icon and is implicitly disabled, so async actions
+ * (e.g. a download) can show progress without the caller rebuilding the UI.
  */
 export type RowAction = {
   /** Stable key for React. */
@@ -38,6 +43,10 @@ export type RowAction = {
   color?: 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' | 'default';
   /** Destructive actions are isolated in the menu footer and tinted red. */
   destructive?: boolean;
+  /** Disable the action (non-clickable, dimmed). */
+  disabled?: boolean;
+  /** Show a spinner in place of the icon; implies disabled. */
+  loading?: boolean;
 };
 
 type RowActionsProps = {
@@ -45,6 +54,14 @@ type RowActionsProps = {
   /** Max non-destructive actions kept inline before overflowing to a menu. */
   maxInline?: number;
 };
+
+/** Icon or spinner, depending on the action's loading state. */
+function actionGlyph(action: RowAction, sx?: object) {
+  if (action.loading) {
+    return <CircularProgress size={18} />;
+  }
+  return <Iconify icon={action.icon} sx={sx} />;
+}
 
 export default function RowActions({ actions, maxInline = 2 }: RowActionsProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -66,21 +83,29 @@ export default function RowActions({ actions, maxInline = 2 }: RowActionsProps) 
     []
   );
 
+  const renderInlineButton = (action: RowAction, color: RowAction['color']) => (
+    <Tooltip key={action.key} title={action.label}>
+      {/* span wrapper keeps the tooltip working while the button is disabled */}
+      <span>
+        <IconButton
+          size="small"
+          onClick={action.onClick}
+          color={color}
+          disabled={action.disabled || action.loading}
+        >
+          {actionGlyph(action)}
+        </IconButton>
+      </span>
+    </Tooltip>
+  );
+
   // Everything fits inline: render each action as an icon button, no menu.
   if (actions.length <= maxInline + 1) {
     return (
       <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
-        {actions.map((action) => (
-          <Tooltip key={action.key} title={action.label}>
-            <IconButton
-              size="small"
-              onClick={action.onClick}
-              color={action.destructive ? 'error' : action.color ?? 'default'}
-            >
-              <Iconify icon={action.icon} />
-            </IconButton>
-          </Tooltip>
-        ))}
+        {actions.map((action) =>
+          renderInlineButton(action, action.destructive ? 'error' : action.color ?? 'default')
+        )}
       </Stack>
     );
   }
@@ -95,13 +120,7 @@ export default function RowActions({ actions, maxInline = 2 }: RowActionsProps) 
 
   return (
     <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
-      {inlineActions.map((action) => (
-        <Tooltip key={action.key} title={action.label}>
-          <IconButton size="small" onClick={action.onClick} color={action.color ?? 'default'}>
-            <Iconify icon={action.icon} />
-          </IconButton>
-        </Tooltip>
-      ))}
+      {inlineActions.map((action) => renderInlineButton(action, action.color ?? 'default'))}
 
       <Tooltip title="Mais ações">
         <IconButton
@@ -124,10 +143,12 @@ export default function RowActions({ actions, maxInline = 2 }: RowActionsProps) 
         slotProps={{ paper: { sx: { minWidth: 200 } } }}
       >
         {overflowActions.map((action) => (
-          <MenuItem key={action.key} onClick={runAndClose(action.onClick)}>
-            <ListItemIcon>
-              <Iconify icon={action.icon} />
-            </ListItemIcon>
+          <MenuItem
+            key={action.key}
+            onClick={runAndClose(action.onClick)}
+            disabled={action.disabled || action.loading}
+          >
+            <ListItemIcon>{actionGlyph(action)}</ListItemIcon>
             <ListItemText>{action.label}</ListItemText>
           </MenuItem>
         ))}
@@ -138,11 +159,10 @@ export default function RowActions({ actions, maxInline = 2 }: RowActionsProps) 
           <MenuItem
             key={action.key}
             onClick={runAndClose(action.onClick)}
+            disabled={action.disabled || action.loading}
             sx={{ color: 'error.main' }}
           >
-            <ListItemIcon>
-              <Iconify icon={action.icon} sx={{ color: 'error.main' }} />
-            </ListItemIcon>
+            <ListItemIcon>{actionGlyph(action, { color: 'error.main' })}</ListItemIcon>
             <ListItemText>{action.label}</ListItemText>
           </MenuItem>
         ))}

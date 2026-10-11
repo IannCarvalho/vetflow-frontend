@@ -9,13 +9,11 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
-import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 
 import { useListPage } from 'src/hooks/useListPage';
 import { useGetPets } from 'src/hooks/usePetsQuery';
@@ -26,6 +24,7 @@ import { getApiErrorMessage } from 'src/utils/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 import { ListTableShell, ConfirmDeleteDialog } from 'src/components/list';
 
 import VaccineFormDialog from 'src/sections/vaccines/vaccine-form-dialog';
@@ -251,16 +250,23 @@ export default function VacinasPage() {
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  <Tooltip title="Editar">
-                    <IconButton size="small" onClick={() => handleEdit(v)}>
-                      <Iconify icon="solar:pen-bold" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Deletar">
-                    <IconButton size="small" onClick={() => handleDeleteClick(v.id)} color="error">
-                      <Iconify icon="solar:trash-bin-trash-bold" />
-                    </IconButton>
-                  </Tooltip>
+                  <RowActions
+                    actions={[
+                      {
+                        key: 'edit',
+                        label: 'Editar',
+                        icon: 'solar:pen-bold',
+                        onClick: () => handleEdit(v),
+                      },
+                      {
+                        key: 'delete',
+                        label: 'Deletar',
+                        icon: 'solar:trash-bin-trash-bold',
+                        destructive: true,
+                        onClick: () => handleDeleteClick(v.id),
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             );

@@ -12,14 +12,12 @@ import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -32,6 +30,7 @@ import { useDeleteConsultation, useGetConsultationsByPetId } from 'src/hooks/use
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 
 import ConsultationFormDialog from 'src/sections/consultations/consultation-form-dialog';
 import ConsultationReportDialog from 'src/sections/consultations/consultation-report-dialog';
@@ -163,24 +162,24 @@ export default function PetConsultasPage() {
                         {consultation.anamnesis.main_complaint}
                       </TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Ver Relatório">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewReport(consultation)}
-                            color="primary"
-                          >
-                            <Iconify icon="solar:eye-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Deletar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteClick(consultation.id)}
-                            color="error"
-                          >
-                            <Iconify icon="solar:trash-bin-trash-bold" />
-                          </IconButton>
-                        </Tooltip>
+                        <RowActions
+                          actions={[
+                            {
+                              key: 'report',
+                              label: 'Ver relatório',
+                              icon: 'solar:eye-bold',
+                              color: 'primary',
+                              onClick: () => handleViewReport(consultation),
+                            },
+                            {
+                              key: 'delete',
+                              label: 'Deletar',
+                              icon: 'solar:trash-bin-trash-bold',
+                              destructive: true,
+                              onClick: () => handleDeleteClick(consultation.id),
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
