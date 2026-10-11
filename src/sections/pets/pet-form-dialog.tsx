@@ -5,6 +5,7 @@ import * as yup from 'yup';
  * Pet Form Dialog Component
  * Modal form for creating/editing pets
  */
+import { useMemo } from 'react';
 import { Controller } from 'react-hook-form';
 
 import Stack from '@mui/material/Stack';
@@ -12,6 +13,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { useEntityForm } from 'src/hooks/useEntityForm';
+import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useCreatePet, useUpdatePet } from 'src/hooks/usePetsQuery';
 
 import { RHFSelect, RHFTextField, FormDialogShell } from 'src/components/form';
@@ -19,6 +21,7 @@ import { RHFSelect, RHFTextField, FormDialogShell } from 'src/components/form';
 // -----------------------------------------------------------------------
 
 const petSchema = yup.object({
+  owner_id: yup.string().required('Cliente é obrigatório'),
   name: yup.string().trim().required('Nome do pet é obrigatório'),
   species: yup.string().required('Espécie é obrigatória'),
   breed: yup.string(),
@@ -41,6 +44,7 @@ const petSchema = yup.object({
 });
 
 interface PetFormValues {
+  owner_id: string;
   name: string;
   species: string;
   breed: string;
@@ -60,6 +64,7 @@ interface PetFormDialogProps {
 }
 
 const DEFAULTS: PetFormValues = {
+  owner_id: '',
   name: '',
   species: '',
   breed: '',
@@ -80,6 +85,18 @@ export default function PetFormDialog({
   const createMutation = useCreatePet();
   const updateMutation = useUpdatePet();
 
+  // When owner is fixed (opened from a client's page) we don't show a picker.
+  // Otherwise (general pets list) the user must choose an existing client.
+  const fixedOwnerId = initialData?.owner_id;
+  const needsClientPicker = !pet && !fixedOwnerId;
+
+  const { data: clients } = useGetClients();
+
+  const defaultsWithOwner = useMemo<PetFormValues>(
+    () => ({ ...DEFAULTS, owner_id: fixedOwnerId ?? '' }),
+    [fixedOwnerId]
+  );
+
   const { control, isLoading, isEdit, submitError, clearError, onSubmit } = useEntityForm<
     PetFormValues,
     ReturnType<typeof buildPayload>,
@@ -88,10 +105,11 @@ export default function PetFormDialog({
     createMutation,
     updateMutation,
     schema: petSchema,
-    defaultValues: DEFAULTS,
+    defaultValues: defaultsWithOwner,
     entity: pet,
     resetDeps: [initialData],
     toFormValues: (p) => ({
+      owner_id: p.owner_id,
       name: p.name,
       species: p.species,
       breed: p.breed ?? '',
@@ -122,6 +140,17 @@ export default function PetFormDialog({
       onSubmit={onSubmit}
       isEdit={isEdit}
     >
+      {needsClientPicker && (
+        <RHFSelect
+          name="owner_id"
+          control={control}
+          label="Cliente (tutor)"
+          fullWidth
+          options={(clients ?? []).map((c) => ({ value: c.id, label: c.full_name }))}
+          emptyLabel="Nenhum cliente cadastrado"
+        />
+      )}
+
       <RHFTextField name="name" control={control} label="Nome" fullWidth />
 
       <RHFSelect
@@ -182,13 +211,15 @@ export default function PetFormDialog({
 // -----------------------------------------------------------------------
 
 /**
- * Reconstrói o payload idêntico ao do dialog original:
- * - CRIAÇÃO: enviava apenas os campos do formulário (sem `owner_id`).
- * - EDIÇÃO: `reset(pet)` carregava a entidade inteira e o submit reenviava
- *   `owner_id`. Reaproveitamos o `owner_id` da entidade em edição.
+ * Monta o payload do pet. `owner_id` é SEMPRE enviado:
+ * - EDIÇÃO: do próprio pet (imutável aqui).
+ * - CRIAÇÃO: do formulário — fixado via `initialData.owner_id` quando aberto
+ *   pela página de um cliente, ou escolhido no seletor de cliente na listagem
+ *   geral.
  */
 function buildPayload(data: PetFormValues, pet: Pet | null | undefined) {
-  const base = {
+  return {
+    owner_id: pet ? pet.owner_id : data.owner_id,
     name: data.name,
     species: data.species,
     breed: data.breed,
@@ -198,6 +229,4 @@ function buildPayload(data: PetFormValues, pet: Pet | null | undefined) {
     neutered: data.neutered,
     weight: data.weight,
   };
-
-  return pet ? { ...base, owner_id: pet.owner_id } : (base as any);
 }
