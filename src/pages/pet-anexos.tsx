@@ -13,14 +13,12 @@ import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -36,6 +34,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { getAttachmentContent } from 'src/api/attachmentsApi';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 
 import AttachmentUploadDialog from 'src/sections/attachments/attachment-upload-dialog';
 
@@ -176,29 +175,25 @@ export default function PetAnexosPage() {
                       <TableCell>{new Date(att.date).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>{att.notes ? att.notes.slice(0, 40) : '-'}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Abrir / Baixar">
-                          <IconButton
-                            size="small"
-                            color="info"
-                            onClick={() => handleView(att.id)}
-                            disabled={downloadingId === att.id}
-                          >
-                            {downloadingId === att.id ? (
-                              <CircularProgress size={18} />
-                            ) : (
-                              <Iconify icon="solar:download-bold" />
-                            )}
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Excluir">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteClick(att.id)}
-                          >
-                            <Iconify icon="solar:trash-bin-trash-bold" />
-                          </IconButton>
-                        </Tooltip>
+                        <RowActions
+                          actions={[
+                            {
+                              key: 'view',
+                              label: 'Abrir / Baixar',
+                              icon: 'solar:download-bold',
+                              color: 'info',
+                              loading: downloadingId === att.id,
+                              onClick: () => handleView(att.id),
+                            },
+                            {
+                              key: 'delete',
+                              label: 'Excluir',
+                              icon: 'solar:trash-bin-trash-bold',
+                              destructive: true,
+                              onClick: () => handleDeleteClick(att.id),
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
