@@ -118,6 +118,7 @@ export function ProfilePictureUpload({ onUpdateSuccess }: ProfilePictureUploadPr
       <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
         <Avatar
           src={previewBase64 || savedPicture || ''}
+          alt={user?.name ? `Foto de perfil de ${user.name}` : 'Foto de perfil'}
           sx={{
             width: 120,
             height: 120,

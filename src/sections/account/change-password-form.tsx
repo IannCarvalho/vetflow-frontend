@@ -135,6 +135,7 @@ export function ChangePasswordForm({ onUpdateSuccess, onNotify }: ChangePassword
                   <IconButton
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     edge="end"
+                    aria-label={showCurrentPassword ? 'Ocultar senha atual' : 'Mostrar senha atual'}
                   >
                     <Iconify
                       icon={showCurrentPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
@@ -160,7 +161,11 @@ export function ChangePasswordForm({ onUpdateSuccess, onNotify }: ChangePassword
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowNewPassword(!showNewPassword)} edge="end">
+                  <IconButton
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    edge="end"
+                    aria-label={showNewPassword ? 'Ocultar nova senha' : 'Mostrar nova senha'}
+                  >
                     <Iconify icon={showNewPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
                   </IconButton>
                 </InputAdornment>
@@ -183,7 +188,13 @@ export function ChangePasswordForm({ onUpdateSuccess, onNotify }: ChangePassword
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                  <IconButton
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    edge="end"
+                    aria-label={
+                      showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'
+                    }
+                  >
                     <Iconify
                       icon={showConfirmPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
                     />
