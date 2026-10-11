@@ -90,6 +90,27 @@ export default function ClientPetsPage() {
     [navigate]
   );
 
+  const handleViewProntuario = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/prontuario`);
+    },
+    [navigate]
+  );
+
+  const handleViewPrescriptions = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/receitas`);
+    },
+    [navigate]
+  );
+
+  const handleViewAttachments = useCallback(
+    (petId: string) => {
+      navigate(`/pets/${petId}/anexos`);
+    },
+    [navigate]
+  );
+
   const handleCloseForm = useCallback(() => {
     setOpenForm(false);
   }, []);
@@ -185,6 +206,13 @@ export default function ClientPetsPage() {
                         <RowActions
                           actions={[
                             {
+                              key: 'prontuario',
+                              label: 'Prontuário',
+                              icon: 'solar:clipboard-heart-bold',
+                              color: 'primary',
+                              onClick: () => handleViewProntuario(pet.id),
+                            },
+                            {
                               key: 'edit',
                               label: 'Editar',
                               icon: 'solar:pen-bold',
@@ -194,15 +222,25 @@ export default function ClientPetsPage() {
                               key: 'consultas',
                               label: 'Ver consultas',
                               icon: 'solar:medical-visit-bold',
-                              color: 'warning',
                               onClick: () => handleViewConsultations(pet.id),
                             },
                             {
                               key: 'vacinas',
                               label: 'Ver vacinas',
                               icon: 'solar:vaccine-bold',
-                              color: 'warning',
                               onClick: () => handleViewVaccines(pet.id),
+                            },
+                            {
+                              key: 'receitas',
+                              label: 'Ver receitas',
+                              icon: 'solar:document-text-bold',
+                              onClick: () => handleViewPrescriptions(pet.id),
+                            },
+                            {
+                              key: 'anexos',
+                              label: 'Ver anexos',
+                              icon: 'solar:paperclip-bold',
+                              onClick: () => handleViewAttachments(pet.id),
                             },
                             {
                               key: 'delete',
