@@ -58,6 +58,37 @@ const MuiCard: Components<Theme>['MuiCard'] = {
       borderRadius: (theme.shape.borderRadius as number) * 2,
     }),
   },
+  variants: [
+    /**
+     * Sistema de 3 níveis de hierarquia de card (Fase 2 do plano de design).
+     * - anchor:  destaque/hero — maior elevação + faixa de acento na cor de marca.
+     * - elevated: KPI acionável — sombra sutil, pronto para receber acento semântico via sx.
+     * - flat:    contexto/tabela — casca plana (borda, sem sombra), nível mais baixo.
+     * Todos scheme-aware (theme.vars.*), sem literais hex. Não alteram o default.
+     */
+    {
+      props: { variant: 'anchor' },
+      style: ({ theme }: { theme: Theme }) => ({
+        boxShadow: theme.vars.customShadows.card,
+        border: `1px solid ${varAlpha(theme.vars.palette.primary.mainChannel, 0.24)}`,
+        borderTop: `3px solid ${theme.vars.palette.primary.main}`,
+      }),
+    },
+    {
+      props: { variant: 'elevated' },
+      style: ({ theme }: { theme: Theme }) => ({
+        boxShadow: theme.vars.customShadows.z8,
+        border: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)}`,
+      }),
+    },
+    {
+      props: { variant: 'flat' },
+      style: ({ theme }: { theme: Theme }) => ({
+        boxShadow: 'none',
+        border: `1px solid ${theme.vars.palette.divider}`,
+      }),
+    },
+  ],
 };
 
 const MuiCardHeader: Components<Theme>['MuiCardHeader'] = {

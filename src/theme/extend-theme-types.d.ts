@@ -47,6 +47,30 @@ declare module '@mui/material/styles' {
   interface TypographyVariantsOptions extends Partial<FontStyleExtend> {}
 }
 
+/**
+ * Habilita os presets custom como `variant` do Typography.
+ * @from {@link file://./core/typography.ts}
+ */
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    heroDisplay: true;
+    bigNumber: true;
+  }
+}
+
+/**
+ * Card variants (Fase 2 do plano de design).
+ * O MUI resolve as variantes do Card contra PaperPropsVariantOverrides.
+ * @from {@link file://./core/components.tsx}
+ */
+declare module '@mui/material/Paper' {
+  interface PaperPropsVariantOverrides {
+    anchor: true;
+    elevated: true;
+    flat: true;
+  }
+}
+
 declare module '@mui/material/styles' {
   /**
    * Custom shadows

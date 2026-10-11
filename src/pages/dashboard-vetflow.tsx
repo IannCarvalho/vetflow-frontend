@@ -1,6 +1,9 @@
 /**
  * VetFlow Dashboard
- * Shows summary statistics and recent consultations/vaccinations
+ * Painel de triagem da recepção: abre pelo que exige ação agora
+ * (agenda do dia, vacinas vencendo), não por totais de vaidade.
+ * Fase 2 do plano de design: hero, hierarquia por urgência clínica,
+ * sistema de cards por nível, big numbers tabulares e A11y.
  */
 
 import type { IconifyName } from 'src/components/iconify';
@@ -39,91 +42,125 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const UPCOMING_WINDOW_DAYS = 30;
 const URGENT_THRESHOLD_DAYS = 7;
 
-interface StatCardProps {
+type SemanticColor = 'primary' | 'info' | 'success' | 'warning' | 'error';
+
+// -----------------------------------------------------------------------
+// KPI acionável (nível 1): big number tabular + ícone + rótulo.
+// Sinal redundante (A11y): cor sempre acompanhada de ícone + rótulo textual.
+// -----------------------------------------------------------------------
+
+interface ActionStatProps {
   title: string;
   value: number | string;
-  color?: 'primary' | 'success' | 'warning' | 'error';
+  color: SemanticColor;
+  icon: IconifyName;
   loading?: boolean;
   onClick?: () => void;
-  icon?: IconifyName;
-  /** Draws a subtle colored ring to flag an actionable metric. */
-  emphasized?: boolean;
+  /** Texto curto de contexto da urgência (ex.: "nos próximos 7 dias"). */
+  hint?: string;
 }
 
-function StatCard({
-  title,
-  value,
-  color = 'primary',
-  loading,
-  onClick,
-  icon,
-  emphasized,
-}: StatCardProps) {
+function ActionStat({ title, value, color, icon, loading, onClick, hint }: ActionStatProps) {
   const content = (
-    <Stack direction="row" alignItems="center" spacing={2}>
-      {icon && (
+    <Stack spacing={1.5} sx={{ p: 3 }}>
+      <Stack direction="row" alignItems="center" spacing={1.5}>
         <Box
           sx={{
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 1.5,
+            color: `${color}.main`,
             bgcolor: (theme) => varAlpha(theme.vars.palette[color].mainChannel, 0.12),
           }}
         >
-          <Iconify icon={icon} width={28} sx={{ color: `${color}.main` }} />
+          <Iconify icon={icon} width={26} />
         </Box>
-      )}
-      <Box sx={{ minWidth: 0 }}>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+        <Typography
+          variant="overline"
+          sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: 0.4 }}
+        >
           {title}
         </Typography>
+      </Stack>
+
+      {loading ? (
+        <Skeleton width="50%" height={40} />
+      ) : (
+        <Typography sx={(theme) => ({ ...theme.typography.bigNumber, color: `${color}.main` })}>
+          {value}
+        </Typography>
+      )}
+
+      {hint && (
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {hint}
+        </Typography>
+      )}
+    </Stack>
+  );
+
+  return (
+    <Card variant="elevated" sx={{ height: '100%' }}>
+      {onClick ? (
+        <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
+          {content}
+        </CardActionArea>
+      ) : (
+        content
+      )}
+    </Card>
+  );
+}
+
+// -----------------------------------------------------------------------
+// Total de contexto (nível 2): subordinado, card flat, denso.
+// -----------------------------------------------------------------------
+
+interface ContextStatProps {
+  title: string;
+  value: number | string;
+  icon: IconifyName;
+  loading?: boolean;
+  onClick?: () => void;
+}
+
+function ContextStat({ title, value, icon, loading, onClick }: ContextStatProps) {
+  const content = (
+    <Stack direction="row" alignItems="center" spacing={2} sx={{ p: 2.5 }}>
+      <Iconify icon={icon} width={24} sx={{ color: 'text.secondary', flexShrink: 0 }} />
+      <Box sx={{ minWidth: 0 }}>
         {loading ? (
-          <Skeleton width="60%" height={32} />
+          <Skeleton width={48} height={28} />
         ) : (
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Typography variant="h4" sx={{ color: `${color}.main` }}>
-              {value}
-            </Typography>
-            {emphasized && (
-              <Iconify
-                icon="solar:bell-bing-bold"
-                width={20}
-                sx={{ color: `${color}.main` }}
-                aria-label="Atenção necessária"
-              />
-            )}
-          </Stack>
+          <Typography variant="h5" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+            {value}
+          </Typography>
         )}
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {title}
+        </Typography>
       </Box>
     </Stack>
   );
 
   return (
-    <Card
-      sx={{
-        boxShadow: 'none',
-        border: '1px solid',
-        borderColor: 'divider',
-        ...(emphasized && {
-          borderColor: (theme) => varAlpha(theme.vars.palette[color].mainChannel, 0.48),
-          boxShadow: (theme) => `0 0 0 1px ${varAlpha(theme.vars.palette[color].mainChannel, 0.24)}`,
-        }),
-      }}
-    >
+    <Card variant="flat" sx={{ height: '100%' }}>
       {onClick ? (
-        <CardActionArea onClick={onClick} sx={{ p: 3 }}>
+        <CardActionArea onClick={onClick} sx={{ height: '100%' }}>
           {content}
         </CardActionArea>
       ) : (
-        <Box sx={{ p: 3 }}>{content}</Box>
+        content
       )}
     </Card>
   );
 }
+
+// -----------------------------------------------------------------------
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -171,90 +208,132 @@ export default function DashboardPage() {
   const daysUntil = (dateStr: string) =>
     Math.ceil((new Date(dateStr).getTime() - now.getTime()) / DAY_MS);
 
+  // Resumo acionável do dia para o hero.
+  const appointmentsToday = stats?.appointments_today ?? 0;
+  const upcomingVaccinations = stats?.upcoming_vaccinations ?? 0;
+  const heroSummary = statsLoading
+    ? 'Carregando o resumo do dia…'
+    : `${appointmentsToday} ${appointmentsToday === 1 ? 'consulta agendada' : 'consultas agendadas'} hoje · ${upcomingVaccinations} ${upcomingVaccinations === 1 ? 'vacina a vencer' : 'vacinas a vencer'}`;
+
   return (
     <>
       <title>Dashboard - VetFlow</title>
       <DashboardContent maxWidth="xl">
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          Bem-vindo ao VetFlow
-        </Typography>
+        {/* Hero — âncora de marca + triagem do dia */}
+        <Card variant="anchor" sx={{ mb: 4 }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            spacing={2.5}
+            sx={{ p: { xs: 3, md: 4 } }}
+          >
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 2,
+                color: 'primary.main',
+                bgcolor: (theme) => varAlpha(theme.vars.palette.primary.mainChannel, 0.12),
+              }}
+            >
+              <Iconify icon="solar:stethoscope-bold" width={32} />
+            </Box>
+            <Box>
+              <Typography sx={(theme) => ({ ...theme.typography.heroDisplay, color: 'text.primary' })}>
+                Bem-vindo ao VetFlow
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                {heroSummary}
+              </Typography>
+            </Box>
+          </Stack>
+        </Card>
 
-        {/* Summary Cards */}
-        <Grid container spacing={3} sx={{ mb: 5 }}>
+        {/* Faixa de ação — KPIs acionáveis (nível 1) */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Total de Clientes"
+            <ActionStat
+              title="Vacinas a vencer"
+              value={upcomingVaccinations}
+              color="warning"
+              icon="mdi:needle"
+              loading={statsLoading}
+              hint={`Nos próximos ${UPCOMING_WINDOW_DAYS} dias`}
+              onClick={() => navigate('/vacinas')}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <ActionStat
+              title="Agendamentos hoje"
+              value={appointmentsToday}
+              color="info"
+              icon="solar:calendar-mark-bold"
+              loading={statsLoading}
+              hint="Consultas do dia"
+              onClick={() => navigate('/agenda')}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <ActionStat
+              title="Faturas pendentes"
+              value={stats?.pending_invoices ?? 0}
+              color="error"
+              icon="solar:bill-list-bold"
+              loading={statsLoading}
+              hint="Aguardando pagamento"
+              onClick={() => navigate('/financeiro')}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Totais de contexto (nível 2) + Consultas do mês, subordinados */}
+        <Grid container spacing={2} sx={{ mb: 5 }}>
+          <Grid size={{ xs: 6, sm: 4 }}>
+            <ContextStat
+              title="Clientes"
               value={stats?.total_clients ?? 0}
-              color="primary"
               icon="solar:users-group-rounded-bold"
               loading={statsLoading}
               onClick={() => navigate('/clientes')}
             />
           </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Total de Pets"
+          <Grid size={{ xs: 6, sm: 4 }}>
+            <ContextStat
+              title="Pets"
               value={stats?.total_pets ?? 0}
-              color="success"
               icon="solar:paw-bold"
               loading={statsLoading}
               onClick={() => navigate('/pets')}
             />
           </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <ContextStat
               title="Consultas este mês"
               value={stats?.consultations_this_month ?? 0}
-              color="warning"
               icon="solar:stethoscope-bold"
               loading={statsLoading}
               onClick={() => navigate('/consultas')}
             />
           </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Vacinas a vencer"
-              value={stats?.upcoming_vaccinations ?? 0}
-              color="error"
-              icon="mdi:needle"
-              loading={statsLoading}
-              emphasized={(stats?.upcoming_vaccinations ?? 0) > 0}
-              onClick={() => navigate('/vacinas')}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Faturas pendentes"
-              value={stats?.pending_invoices ?? 0}
-              color="warning"
-              icon="solar:bill-list-bold"
-              loading={statsLoading}
-              onClick={() => navigate('/financeiro')}
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <StatCard
-              title="Agendamentos hoje"
-              value={stats?.appointments_today ?? 0}
-              color="primary"
-              icon="solar:calendar-mark-bold"
-              loading={statsLoading}
-              onClick={() => navigate('/agenda')}
-            />
-          </Grid>
         </Grid>
 
-        {/* Recent Consultations and Upcoming Vaccinations */}
+        {/* Operacional do dia: Consultas recentes + Vacinas a vencer */}
         <Grid container spacing={3}>
           {/* Recent Consultations */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ p: 3, pb: 2, backgroundColor: 'background.neutral', borderRadius: '4px 4px 0 0' }}>
+            <Card variant="flat">
+              <Box
+                sx={{
+                  p: 3,
+                  pb: 2,
+                  backgroundColor: 'background.neutral',
+                  borderRadius: '12px 12px 0 0',
+                }}
+              >
                 <Typography variant="h6">Consultas Recentes</Typography>
               </Box>
               {consultationsLoading ? (
@@ -299,7 +378,16 @@ export default function DashboardPage() {
                         <TableRow
                           key={c.id}
                           hover
+                          tabIndex={0}
+                          role="link"
+                          aria-label={`Abrir prontuário de ${getPetName(c.pet_id)}`}
                           onClick={() => navigate(`/pets/${c.pet_id}/prontuario`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/pets/${c.pet_id}/prontuario`);
+                            }
+                          }}
                           sx={{ cursor: 'pointer' }}
                         >
                           <TableCell>{new Date(c.date).toLocaleDateString('pt-BR')}</TableCell>
@@ -315,20 +403,41 @@ export default function DashboardPage() {
                   </Table>
                 </TableContainer>
               ) : (
-                <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-                  Nenhuma consulta registrada
-                </Box>
+                <Stack spacing={1} sx={{ p: 4, textAlign: 'center', alignItems: 'center' }}>
+                  <Iconify
+                    icon="solar:stethoscope-bold"
+                    width={32}
+                    sx={{ color: 'text.disabled' }}
+                  />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Nenhuma consulta registrada ainda
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                    As consultas aparecem aqui assim que forem lançadas no prontuário.
+                  </Typography>
+                </Stack>
               )}
             </Card>
           </Grid>
 
           {/* Upcoming Vaccinations */}
           <Grid size={{ xs: 12, md: 6 }}>
-            <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ p: 3, pb: 2, backgroundColor: 'background.neutral', borderRadius: '4px 4px 0 0' }}>
+            <Card variant="flat">
+              <Box
+                sx={{
+                  p: 3,
+                  pb: 2,
+                  backgroundColor: 'background.neutral',
+                  borderRadius: '12px 12px 0 0',
+                }}
+              >
                 <Typography variant="h6">
                   Vacinas a Vencer
-                  <Typography component="span" variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    sx={{ color: 'text.secondary', ml: 1 }}
+                  >
                     (próximos {UPCOMING_WINDOW_DAYS} dias)
                   </Typography>
                 </Typography>
@@ -374,11 +483,26 @@ export default function DashboardPage() {
                       {upcomingVaccines.slice(0, 5).map((v) => {
                         const remaining = daysUntil(v.next_dose_date!);
                         const isUrgent = remaining <= URGENT_THRESHOLD_DAYS;
+                        const remainingLabel =
+                          remaining <= 0
+                            ? 'Hoje'
+                            : `${remaining} ${remaining === 1 ? 'dia' : 'dias'}`;
                         return (
                           <TableRow
                             key={v.id}
                             hover
+                            tabIndex={0}
+                            role="link"
+                            aria-label={`Vacina ${v.vaccine_name} de ${getPetName(v.pet_id)}, ${
+                              isUrgent ? 'urgente, ' : ''
+                            }vence em ${remainingLabel}`}
                             onClick={() => navigate(`/pets/${v.pet_id}/vacinas`)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                navigate(`/pets/${v.pet_id}/vacinas`);
+                              }
+                            }}
                             sx={{ cursor: 'pointer' }}
                           >
                             <TableCell>{getPetName(v.pet_id)}</TableCell>
@@ -386,13 +510,15 @@ export default function DashboardPage() {
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 {new Date(v.next_dose_date!).toLocaleDateString('pt-BR')}
+                                {/* Sinal redundante: cor + ícone + rótulo (A11y) */}
                                 <Chip
                                   size="small"
-                                  label={
-                                    remaining <= 0
-                                      ? 'Hoje'
-                                      : `${remaining} ${remaining === 1 ? 'dia' : 'dias'}`
+                                  icon={
+                                    isUrgent ? (
+                                      <Iconify icon="solar:bell-bing-bold" width={14} />
+                                    ) : undefined
                                   }
+                                  label={remainingLabel}
                                   color={isUrgent ? 'error' : 'default'}
                                   variant={isUrgent ? 'filled' : 'outlined'}
                                 />
@@ -405,9 +531,15 @@ export default function DashboardPage() {
                   </Table>
                 </TableContainer>
               ) : (
-                <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-                  Nenhuma vacinação pendente nos próximos {UPCOMING_WINDOW_DAYS} dias
-                </Box>
+                <Stack spacing={1} sx={{ p: 4, textAlign: 'center', alignItems: 'center' }}>
+                  <Iconify icon="mdi:needle" width={32} sx={{ color: 'text.disabled' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Nenhuma vacinação pendente nos próximos {UPCOMING_WINDOW_DAYS} dias
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                    Tudo em dia por aqui. Novas doses agendadas aparecem nesta lista.
+                  </Typography>
+                </Stack>
               )}
             </Card>
           </Grid>
