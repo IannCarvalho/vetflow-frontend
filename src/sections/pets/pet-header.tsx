@@ -111,7 +111,20 @@ export default function PetHeader({ action }: PetHeaderProps) {
         variant="scrollable"
         scrollButtons="auto"
         allowScrollButtonsMobile
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
+        sx={(theme) => ({
+          borderBottom: 1,
+          borderColor: 'divider',
+          // primary.main (#2E7D5B) only reaches ~3.5:1 on the dark background,
+          // below WCAG AA 4.5:1. Use the lighter tone for the selected tab and
+          // the indicator in dark mode, where it clears the threshold.
+          '& .MuiTab-root.Mui-selected': {
+            color: theme.vars.palette.primary.main,
+            ...theme.applyStyles('dark', { color: theme.vars.palette.primary.light }),
+          },
+          '& .MuiTabs-indicator': {
+            ...theme.applyStyles('dark', { backgroundColor: theme.vars.palette.primary.light }),
+          },
+        })}
       >
         {TABS.map((tab) => (
           <Tab
