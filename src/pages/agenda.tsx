@@ -11,16 +11,11 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import CircularProgress from '@mui/material/CircularProgress';
-import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetPets } from 'src/hooks/usePetsQuery';
 import {
@@ -35,6 +30,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
+import { ConfirmDeleteDialog } from 'src/components/list';
 
 import AppointmentFormDialog from 'src/sections/appointments/appointment-form-dialog';
 import ConsultationFormDialog from 'src/sections/consultations/consultation-form-dialog';
@@ -107,6 +103,11 @@ export default function AgendaPage() {
   const getPetName = useCallback(
     (petId: string) => petNameById.get(petId) ?? 'Pet removido',
     [petNameById]
+  );
+
+  const appointmentPendingDeletion = useMemo(
+    () => (appointments ?? []).find((a) => a.id === toDelete) ?? null,
+    [appointments, toDelete]
   );
 
   const visible = useMemo(() => {
@@ -368,18 +369,22 @@ export default function AgendaPage() {
           initialData={consultationFor ? { pet_id: consultationFor.pet_id } : undefined}
         />
 
-        <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-          <DialogTitle>Tem certeza?</DialogTitle>
-          <DialogContent>
-            <DialogContentText>Essa ação não pode ser desfeita.</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
-            <Button onClick={handleConfirmDelete} color="error" variant="contained">
-              Excluir
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <ConfirmDeleteDialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          onConfirm={handleConfirmDelete}
+          isPending={deleteMutation.isPending}
+          title="Excluir agendamento?"
+          description={
+            appointmentPendingDeletion && (
+              <>
+                Você está prestes a excluir o agendamento de{' '}
+                <strong>{getPetName(appointmentPendingDeletion.pet_id)}</strong>.
+              </>
+            )
+          }
+          warning="Essa ação não pode ser desfeita."
+        />
 
         <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
           <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>

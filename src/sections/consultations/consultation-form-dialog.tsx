@@ -23,6 +23,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
+import DialogContentText from '@mui/material/DialogContentText';
 
 import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useEntityForm } from 'src/hooks/useEntityForm';
@@ -139,11 +140,8 @@ export default function ConsultationFormDialog({
   const needsPetPicker = !consultation && !fixedPetId;
   const { data: pets } = useGetPets();
 
-  const { control, isLoading, isEdit, submitError, clearError, onSubmit } = useEntityForm<
-    ConsultationFormValues,
-    ConsultationPayload,
-    Consultation
-  >({
+  const { control, isLoading, isEdit, submitError, clearError, onSubmit, watch, formState } =
+    useEntityForm<ConsultationFormValues, ConsultationPayload, Consultation>({
     createMutation,
     updateMutation,
     schema: consultationSchema,
@@ -208,6 +206,31 @@ export default function ConsultationFormDialog({
     if (activeStep > 0) {
       setActiveStep((prev) => prev - 1);
     }
+  };
+
+  // QW2 — a "Queixa Principal" (passo Anamnese) é obrigatória. Bloqueia o botão
+  // final de salvar quando vazia; o yup ainda marca o erro no campo ao submeter.
+  const mainComplaint = watch('anamnesis_main_complaint');
+  const isMainComplaintMissing = !mainComplaint || !mainComplaint.trim();
+
+  // QW3 — confirmar descarte quando o form tem alterações não salvas.
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+
+  const handleRequestClose = () => {
+    if (formState.isDirty) {
+      setConfirmDiscardOpen(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleCancelDiscard = () => {
+    setConfirmDiscardOpen(false);
+  };
+
+  const handleConfirmDiscard = () => {
+    setConfirmDiscardOpen(false);
+    onClose();
   };
 
   const renderStepContent = () => {
@@ -399,7 +422,7 @@ export default function ConsultationFormDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleRequestClose} maxWidth="sm" fullWidth>
       <DialogTitle>{isEdit ? 'Editar Consulta' : 'Nova Consulta'}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 2 }}>
@@ -413,6 +436,12 @@ export default function ConsultationFormDialog({
 
           {renderStepContent()}
 
+          {activeStep === steps.length - 1 && isMainComplaintMissing && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              Informe a <strong>Queixa Principal</strong> (passo Anamnese) antes de salvar.
+            </Alert>
+          )}
+
           {submitError && (
             <Alert severity="error" sx={{ mt: 2 }} onClose={clearError}>
               {submitError}
@@ -421,7 +450,7 @@ export default function ConsultationFormDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button onClick={handleRequestClose}>Cancelar</Button>
         {activeStep > 0 && (
           <Button onClick={handleBack} disabled={isLoading}>
             Voltar
@@ -432,12 +461,32 @@ export default function ConsultationFormDialog({
             Próximo
           </Button>
         ) : (
-          <Button onClick={onSubmit} variant="contained" disabled={isLoading}>
+          <Button
+            onClick={onSubmit}
+            variant="contained"
+            disabled={isLoading || isMainComplaintMissing}
+          >
             {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
             {isEdit ? 'Atualizar' : 'Criar'}
           </Button>
         )}
       </DialogActions>
+
+      {/* QW3 — confirmação de descarte de alterações não salvas */}
+      <Dialog open={confirmDiscardOpen} onClose={handleCancelDiscard} maxWidth="xs">
+        <DialogTitle>Descartar alterações?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Há alterações não salvas neste formulário. Se fechar agora, elas serão perdidas.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDiscard}>Continuar editando</Button>
+          <Button onClick={handleConfirmDiscard} color="error" variant="contained">
+            Descartar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 }
