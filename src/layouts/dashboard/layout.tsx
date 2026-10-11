@@ -16,6 +16,7 @@ import { _account } from '../nav-config-account';
 import { dashboardLayoutVars } from './css-vars';
 import { navData } from '../nav-config-dashboard';
 import { MainSection } from '../core/main-section';
+import { SkipLink } from '../components/skip-link';
 import { MenuButton } from '../components/menu-button';
 import { HeaderSection } from '../core/header-section';
 import { LayoutSection } from '../core/layout-section';
@@ -106,7 +107,9 @@ export function DashboardLayout({
   const renderMain = () => <MainSection {...slotProps?.main}>{children}</MainSection>;
 
   return (
-    <LayoutSection
+    <>
+      <SkipLink />
+      <LayoutSection
       /** **************************************
        * @Header
        *************************************** */
@@ -139,6 +142,7 @@ export function DashboardLayout({
       ]}
     >
       {renderMain()}
-    </LayoutSection>
+      </LayoutSection>
+    </>
   );
 }
