@@ -14,7 +14,6 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import TableRow from '@mui/material/TableRow';
@@ -22,7 +21,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
@@ -39,6 +37,7 @@ import { getApiErrorMessage } from 'src/utils/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 
 import ClientFormDialog from 'src/sections/clients/client-form-dialog';
 
@@ -245,29 +244,31 @@ export default function ClientesPage() {
                         {client.address.street}, {client.address.number}
                       </TableCell>
                       <TableCell align="right">
-                        <Tooltip title="Editar">
-                          <IconButton size="small" onClick={() => handleEditClient(client)}>
-                            <Iconify icon="solar:pen-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Ver Pets">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewPets(client)}
-                            color="warning"
-                          >
-                            <Iconify icon="solar:paw-bold" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Deletar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteClick(client.id)}
-                            color="error"
-                          >
-                            <Iconify icon="solar:trash-bin-trash-bold" />
-                          </IconButton>
-                        </Tooltip>
+                        <RowActions
+                          maxInline={3}
+                          actions={[
+                            {
+                              key: 'edit',
+                              label: 'Editar',
+                              icon: 'solar:pen-bold',
+                              onClick: () => handleEditClient(client),
+                            },
+                            {
+                              key: 'pets',
+                              label: 'Ver pets',
+                              icon: 'solar:paw-bold',
+                              color: 'warning',
+                              onClick: () => handleViewPets(client),
+                            },
+                            {
+                              key: 'delete',
+                              label: 'Deletar',
+                              icon: 'solar:trash-bin-trash-bold',
+                              destructive: true,
+                              onClick: () => handleDeleteClick(client.id),
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
