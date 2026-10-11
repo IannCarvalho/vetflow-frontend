@@ -91,7 +91,10 @@ export const grey = createPaletteChannel(themeConfig.palette.grey);
 export const text = {
   light: createPaletteChannel({
     primary: grey[800],
-    secondary: grey[600],
+    // #637381 (grey.600) só atinge ~4.26:1 sobre os fundos claros quentes
+    // (background.neutral #F3EFE9, hover de tabela), abaixo do WCAG AA 4.5:1.
+    // #5A6572 passa (>= 5.1:1) em todos eles mantendo o tom "secundário".
+    secondary: '#5A6572',
     disabled: grey[500],
   }),
   dark: createPaletteChannel({
