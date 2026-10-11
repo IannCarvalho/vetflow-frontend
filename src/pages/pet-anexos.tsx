@@ -149,7 +149,7 @@ export default function PetAnexosPage() {
           </Button>
         </Stack>
 
-        <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+        <Card variant="flat">
           {isLoading ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <CircularProgress />

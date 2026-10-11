@@ -211,7 +211,7 @@ export default function VacinasPage() {
           ))}
         </Stack>
 
-        <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+        <Card variant="flat">
           {isLoading ? (
             <TableContainer>
               <Table>

@@ -48,7 +48,7 @@ function monthKey(d: Date): string {
 
 function StatCard({ icon, label, value, color }: { icon: IconifyName; label: string; value: string; color?: string }) {
   return (
-    <Card sx={{ p: 2.5, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+    <Card variant="flat" sx={{ p: 2.5 }}>
       <Stack direction="row" alignItems="center" spacing={2}>
         <Box
           sx={{
@@ -210,7 +210,7 @@ export default function FinanceiroDashboardPage() {
               </Grid>
             </Grid>
 
-            <Card sx={{ p: 3, boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+            <Card variant="flat" sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Receita por mês (últimos {MONTHS_BACK} meses)
               </Typography>
@@ -220,7 +220,7 @@ export default function FinanceiroDashboardPage() {
             <Grid container spacing={3}>
               {/* Overdue invoices */}
               <Grid size={{ xs: 12, md: 6 }}>
-                <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+                <Card variant="flat">
                   <Box sx={{ p: 3, pb: 1 }}>
                     <Typography variant="h6">Faturas vencidas</Typography>
                   </Box>
@@ -261,7 +261,7 @@ export default function FinanceiroDashboardPage() {
 
               {/* Top billed items */}
               <Grid size={{ xs: 12, md: 6 }}>
-                <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+                <Card variant="flat">
                   <Box sx={{ p: 3, pb: 1 }}>
                     <Typography variant="h6">Itens mais faturados</Typography>
                   </Box>

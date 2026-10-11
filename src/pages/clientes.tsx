@@ -187,7 +187,7 @@ export default function ClientesPage() {
           />
         </Box>
 
-        <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+        <Card variant="flat">
           {isLoading ? (
             <TableContainer>
               <Table>

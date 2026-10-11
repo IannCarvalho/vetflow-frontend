@@ -245,7 +245,7 @@ export default function AgendaPage() {
                 <Typography variant="subtitle1" sx={{ mb: 1.5, color: 'text.secondary' }}>
                   {formatDayHeading(dateKey)}
                 </Typography>
-                <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+                <Card variant="flat">
                   {items.map((a, index) => (
                     <Box key={a.id}>
                       {index > 0 && <Divider />}
@@ -304,7 +304,7 @@ export default function AgendaPage() {
             ))}
           </Stack>
         ) : (
-          <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
+          <Card variant="flat">
             <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
               {filter === 'upcoming'
                 ? 'Nenhum agendamento próximo. Clique em "Novo Agendamento" para começar.'
