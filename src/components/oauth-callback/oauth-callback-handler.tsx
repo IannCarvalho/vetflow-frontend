@@ -82,7 +82,7 @@ export function OAuthCallbackHandler() {
         gap: 2,
       }}
     >
-      <CircularProgress />
+      <CircularProgress aria-label="Autenticando" />
       <Typography>Processando login social...</Typography>
     </Box>
   );

@@ -45,16 +45,7 @@ test.describe('Accessibility (axe-core WCAG 2.1 AA)', () => {
       // Let the shell settle (lazy route chunk + first paint).
       await page.waitForTimeout(600);
 
-      const results = await new AxeBuilder({ page })
-        .withTags(WCAG_TAGS)
-        // Without a backend in CI, data-driven pages stay stuck on their loading
-        // spinner (CircularProgress/LinearProgress), which axe flags as an
-        // unnamed progressbar. That is a transient state that never happens in
-        // prod (data arrives, spinner unmounts), so it is not representative here
-        // and would be a false positive. Giving every spinner an aria-label is a
-        // real but separate improvement (36 usages) tracked as a follow-up.
-        .disableRules(['aria-progressbar-name'])
-        .analyze();
+      const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
 
       if (results.violations.length) {
         const lines = results.violations.map((v) => {

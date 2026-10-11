@@ -152,7 +152,7 @@ export default function ClientPetsPage() {
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
-              <CircularProgress />
+              <CircularProgress aria-label="Carregando" />
             </Box>
           ) : clientPets && clientPets.length > 0 ? (
             <TableContainer>

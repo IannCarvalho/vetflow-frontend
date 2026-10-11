@@ -109,7 +109,7 @@ export function NotificationsCenter() {
 
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <CircularProgress size={24} />
+              <CircularProgress size={24} aria-label="Carregando notificações" />
             </Box>
           ) : allNotifications.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>

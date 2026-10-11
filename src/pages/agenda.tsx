@@ -267,7 +267,7 @@ export default function AgendaPage() {
 
         {isLoading ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <CircularProgress />
+            <CircularProgress aria-label="Carregando" />
           </Box>
         ) : grouped.length > 0 ? (
           <Stack spacing={3}>

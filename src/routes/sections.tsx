@@ -45,6 +45,7 @@ const renderFallback = () => (
     }}
   >
     <LinearProgress
+      aria-label="Carregando página"
       sx={{
         width: 1,
         maxWidth: 320,

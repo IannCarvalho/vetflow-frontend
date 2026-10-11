@@ -180,7 +180,7 @@ export default function FinanceiroDashboardPage() {
 
         {isLoading ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <CircularProgress />
+            <CircularProgress aria-label="Carregando" />
           </Box>
         ) : (
           <Stack spacing={3}>
