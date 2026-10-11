@@ -25,6 +25,7 @@ import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useCreateAppointment, useUpdateAppointment } from 'src/hooks/useAppointmentsQuery';
 
 import { getApiErrorMessage } from 'src/utils/api-error';
+import { defaultStart, toLocalInputValue } from 'src/utils/format-time';
 
 import { APPOINTMENT_TYPE_OPTIONS, APPOINTMENT_STATUS_OPTIONS } from './appointment-constants';
 
@@ -57,26 +58,6 @@ interface AppointmentFormDialogProps {
   onSuccess?: (message: string) => void;
   /** Prefill values, e.g. a selected pet or a clicked calendar slot. */
   initialData?: { pet_id?: string; start_time?: string };
-}
-
-/**
- * Convert an ISO timestamp to the `YYYY-MM-DDTHH:mm` value expected by
- * <input type="datetime-local"> in the user's local timezone.
- */
-function toLocalInputValue(iso?: string): string {
-  if (!iso) return '';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-/** Default: next round hour, one hour long. */
-function defaultStart(): string {
-  const d = new Date();
-  d.setMinutes(0, 0, 0);
-  d.setHours(d.getHours() + 1);
-  return toLocalInputValue(d.toISOString());
 }
 
 export default function AppointmentFormDialog({

@@ -28,6 +28,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useCreateInvoice, useUpdateInvoice } from 'src/hooks/useInvoicesQuery';
 
+import { toDateInput } from 'src/utils/format-time';
 import { getApiErrorMessage } from 'src/utils/api-error';
 
 import { Iconify } from 'src/components/iconify';
@@ -82,14 +83,6 @@ interface InvoiceFormDialogProps {
   invoice?: Invoice | null;
   onSuccess?: (message: string) => void;
   initialData?: { client_id?: string };
-}
-
-function toDateInput(iso?: string): string {
-  if (!iso) return new Date().toISOString().split('T')[0];
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? new Date().toISOString().split('T')[0]
-    : d.toISOString().split('T')[0];
 }
 
 export default function InvoiceFormDialog({

@@ -31,6 +31,7 @@ import TablePagination from '@mui/material/TablePagination';
 
 import { useGetCatalogItems, useDeleteCatalogItem } from 'src/hooks/useCatalogQuery';
 
+import { formatBRL } from 'src/utils/format-number';
 import { getApiErrorMessage } from 'src/utils/api-error';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -50,10 +51,6 @@ const FILTERS = [
 ] as const;
 
 type FilterValue = (typeof FILTERS)[number]['value'];
-
-function formatBRL(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
 
 export default function CatalogoPage() {
   const { data: items, isLoading } = useGetCatalogItems();

@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { it, expect, describe } from 'vitest';
 
-import { fNumber, fPercent, fCurrency, fShortenNumber } from './format-number';
+import { fNumber, fPercent, fCurrency, formatBRL, fShortenNumber } from './format-number';
 
 describe('fNumber', () => {
   it('formats an integer', () => {
@@ -71,5 +71,16 @@ describe('fShortenNumber', () => {
 
   it('returns empty string for null', () => {
     expect(fShortenNumber(null)).toBe('');
+  });
+});
+
+describe('formatBRL', () => {
+  it('formats a value as Brazilian Real', () => {
+    // toLocaleString('pt-BR') uses a non-breaking space between symbol and value.
+    expect(formatBRL(1234.5)).toBe('R$\u00a01.234,50');
+  });
+
+  it('formats zero', () => {
+    expect(formatBRL(0)).toBe('R$\u00a00,00');
   });
 });

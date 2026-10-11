@@ -84,3 +84,10 @@ export function fShortenNumber(inputValue: InputNumberValue, options?: Options) 
 
   return fm.replace(/[A-Z]/g, (match) => match.toLowerCase());
 }
+
+// ----------------------------------------------------------------------
+
+/** Format a numeric amount as Brazilian Real (pt-BR / BRL). */
+export function formatBRL(value: number): string {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
