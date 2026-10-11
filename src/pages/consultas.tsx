@@ -36,6 +36,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
 
+import ConsultationFormDialog from 'src/sections/consultations/consultation-form-dialog';
 import ConsultationReportDialog from 'src/sections/consultations/consultation-report-dialog';
 
 import type { Consultation } from '../types';
@@ -51,6 +52,7 @@ export default function ConsultasPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openForm, setOpenForm] = useState(false);
   // The report dialog declares its own (narrower) Consultation shape, which is a
   // structural subset of the shared Consultation type, so this value is assignable.
   const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
@@ -99,6 +101,19 @@ export default function ConsultasPage() {
     setOpenReportDialog(true);
   }, []);
 
+  const handleAddConsultation = useCallback(() => {
+    setOpenForm(true);
+  }, []);
+
+  const handleCloseForm = useCallback(() => {
+    setOpenForm(false);
+  }, []);
+
+  const handleFormSuccess = useCallback((message: string) => {
+    setSnackbar({ open: true, message, severity: 'success' });
+    setOpenForm(false);
+  }, []);
+
   const handleDeleteClick = useCallback((id: string) => {
     setConsultationToDelete(id);
     setOpenDeleteDialog(true);
@@ -130,6 +145,14 @@ export default function ConsultasPage() {
       <DashboardContent maxWidth="lg">
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
           <Typography variant="h4">Consultas</Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={handleAddConsultation}
+          >
+            Nova Consulta
+          </Button>
         </Stack>
 
         <TextField
@@ -254,6 +277,13 @@ export default function ConsultasPage() {
           open={openReportDialog}
           onClose={() => setOpenReportDialog(false)}
           consultation={selectedConsultation}
+        />
+
+        {/* Consultation Form Dialog (create from the general list) */}
+        <ConsultationFormDialog
+          open={openForm}
+          onClose={handleCloseForm}
+          onSuccess={handleFormSuccess}
         />
 
         {/* Delete Confirmation Dialog */}

@@ -9,6 +9,7 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
@@ -125,6 +126,11 @@ export default function VacinasPage() {
     setOpenForm(true);
   }, []);
 
+  const handleAddVaccine = useCallback(() => {
+    setVaccineToEdit(null);
+    setOpenForm(true);
+  }, []);
+
   const handleCloseForm = useCallback(() => {
     setOpenForm(false);
     setVaccineToEdit(null);
@@ -163,6 +169,14 @@ export default function VacinasPage() {
       <DashboardContent maxWidth="lg">
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
           <Typography variant="h4">Vacinas</Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={handleAddVaccine}
+          >
+            Nova Vacina
+          </Button>
         </Stack>
 
         <TextField

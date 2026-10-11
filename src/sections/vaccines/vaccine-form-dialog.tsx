@@ -6,14 +6,16 @@ import * as yup from 'yup';
  * Vaccine Form Dialog Component
  * Modal form for creating/editing vaccine records
  */
+import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useEntityForm } from 'src/hooks/useEntityForm';
 import { useCreateVaccine, useUpdateVaccine } from 'src/hooks/useVaccinesQuery';
 
-import { RHFTextField, FormDialogShell } from 'src/components/form';
+import { RHFSelect, RHFTextField, FormDialogShell } from 'src/components/form';
 
 // -----------------------------------------------------------------------
 
 const vaccineSchema = yup.object({
+  pet_id: yup.string().required('Pet é obrigatório'),
   vaccine_name: yup.string().required('Nome da vacina é obrigatório'),
   batch: yup.string(),
   manufacturer: yup.string(),
@@ -23,6 +25,7 @@ const vaccineSchema = yup.object({
 });
 
 interface VaccineFormValues {
+  pet_id: string;
   vaccine_name: string;
   batch: string;
   manufacturer: string;
@@ -49,7 +52,12 @@ export default function VaccineFormDialog({
   const createMutation = useCreateVaccine();
   const updateMutation = useUpdateVaccine();
 
+  const fixedPetId = initialData?.pet_id;
+  const needsPetPicker = !vaccine && !fixedPetId;
+  const { data: pets } = useGetPets();
+
   const defaultValues: VaccineFormValues = {
+    pet_id: fixedPetId ?? '',
     vaccine_name: '',
     batch: '',
     manufacturer: '',
@@ -68,7 +76,9 @@ export default function VaccineFormDialog({
     schema: vaccineSchema,
     defaultValues,
     entity: vaccine,
+    resetDeps: [initialData],
     toFormValues: (v) => ({
+      pet_id: v.pet_id,
       vaccine_name: v.vaccine_name ?? '',
       batch: v.batch ?? '',
       manufacturer: v.manufacturer ?? '',
@@ -76,8 +86,8 @@ export default function VaccineFormDialog({
       next_dose_date: v.next_dose_date ? v.next_dose_date.split('T')[0] : '',
       notes: v.notes ?? '',
     }),
-    beforeSubmit: () => {
-      const petId = vaccine?.pet_id || initialData?.pet_id;
+    beforeSubmit: (data) => {
+      const petId = vaccine?.pet_id || initialData?.pet_id || data.pet_id;
       return petId ? undefined : 'Não foi possível identificar o pet desta vacinação.';
     },
     toPayload: (data) => buildPayload(data, vaccine, initialData),
@@ -101,6 +111,17 @@ export default function VaccineFormDialog({
       onSubmit={onSubmit}
       isEdit={isEdit}
     >
+      {needsPetPicker && (
+        <RHFSelect
+          name="pet_id"
+          control={control}
+          label="Pet"
+          fullWidth
+          options={(pets ?? []).map((p) => ({ value: p.id, label: p.name }))}
+          emptyLabel="Nenhum pet cadastrado"
+        />
+      )}
+
       <RHFTextField name="vaccine_name" control={control} label="Nome da Vacina" fullWidth />
 
       <RHFTextField name="batch" control={control} label="Lote" fullWidth />
@@ -137,11 +158,14 @@ function buildPayload(
   vaccine: Vaccine | null | undefined,
   initialData?: { pet_id: string }
 ) {
-  const petId = (vaccine?.pet_id || initialData?.pet_id) as string;
+  const petId = (vaccine?.pet_id || initialData?.pet_id || data.pet_id) as string;
 
   return {
-    ...data,
     pet_id: petId,
+    vaccine_name: data.vaccine_name,
+    batch: data.batch,
+    manufacturer: data.manufacturer,
+    notes: data.notes,
     date_applied: new Date(data.date_applied).toISOString(),
     next_dose_date: data.next_dose_date ? new Date(data.next_dose_date).toISOString() : undefined,
   };
