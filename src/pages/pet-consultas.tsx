@@ -1,13 +1,12 @@
+import { useParams } from 'react-router-dom';
 /**
  * Pet Consultations Page
  * Displays all consultations for a specific pet
  */
 import { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -17,14 +16,12 @@ import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useDeleteConsultation, useGetConsultationsByPetId } from 'src/hooks/useConsultationsQuery';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -32,6 +29,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
 
+import PetHeader from 'src/sections/pets/pet-header';
 import ConsultationFormDialog from 'src/sections/consultations/consultation-form-dialog';
 import ConsultationReportDialog from 'src/sections/consultations/consultation-report-dialog';
 
@@ -39,8 +37,6 @@ import ConsultationReportDialog from 'src/sections/consultations/consultation-re
 
 export default function PetConsultasPage() {
   const { petId } = useParams();
-  const navigate = useNavigate();
-  const { data: allPets } = useGetPets();
   const { data: petConsultations, isLoading } = useGetConsultationsByPetId(petId);
   const deleteConsultationMutation = useDeleteConsultation();
 
@@ -58,12 +54,6 @@ export default function PetConsultasPage() {
     message: '',
     severity: 'success',
   });
-
-  const currentPet = allPets?.find((p) => p.id === petId);
-
-  const handleBackToPets = useCallback(() => {
-    navigate('/pets');
-  }, [navigate]);
 
   const handleAddConsultation = useCallback(() => {
     setOpenConsultationDialog(true);
@@ -118,22 +108,18 @@ export default function PetConsultasPage() {
     <>
       <title>Consultas - VetFlow</title>
       <DashboardContent maxWidth="lg">
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Button color="inherit" variant="text" onClick={handleBackToPets}>
-              ← Voltar
+        <PetHeader
+          action={
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={handleAddConsultation}
+            >
+              Nova Consulta
             </Button>
-            <Typography variant="h4">Consultas de {currentPet?.name || 'Carregando...'}</Typography>
-          </Stack>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={handleAddConsultation}
-          >
-            Nova Consulta
-          </Button>
-        </Stack>
+          }
+        />
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (

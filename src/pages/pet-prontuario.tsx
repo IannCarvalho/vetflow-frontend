@@ -1,16 +1,15 @@
+import { useParams } from 'react-router-dom';
 /**
  * Pet Medical Record (Prontuário) Page
  * A unified chronological view of a pet's clinical history: consultations and
  * vaccines merged into a single timeline, plus pet/owner summary.
  */
 import { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -24,6 +23,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import PetHeader from 'src/sections/pets/pet-header';
 import PetTimeline from 'src/sections/timeline/pet-timeline';
 import ConsultationReportDialog from 'src/sections/consultations/consultation-report-dialog';
 
@@ -75,7 +75,6 @@ function InfoRow({ label, value }: { label: string; value?: string | number }) {
 
 export default function PetProntuarioPage() {
   const { petId } = useParams();
-  const navigate = useNavigate();
 
   const { data: allPets, isLoading: loadingPets } = useGetPets();
   const { data: allClients } = useGetClients();
@@ -104,32 +103,7 @@ export default function PetProntuarioPage() {
     <>
       <title>Prontuário - VetFlow</title>
       <DashboardContent maxWidth="lg">
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Button color="inherit" variant="text" onClick={() => navigate('/pets')}>
-              ← Voltar
-            </Button>
-            <Typography variant="h4">
-              Prontuário de {currentPet?.name || 'Carregando...'}
-            </Typography>
-          </Stack>
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              startIcon={<Iconify icon="solar:medical-visit-bold" />}
-              onClick={() => petId && navigate(`/pets/${petId}/consultas`)}
-            >
-              Consultas
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Iconify icon="solar:vaccine-bold" />}
-              onClick={() => petId && navigate(`/pets/${petId}/vacinas`)}
-            >
-              Vacinas
-            </Button>
-          </Stack>
-        </Stack>
+        <PetHeader />
 
         {isLoading ? (
           <Box sx={{ p: 3, textAlign: 'center' }}>

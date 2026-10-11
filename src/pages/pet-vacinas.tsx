@@ -1,13 +1,12 @@
+import { useParams } from 'react-router-dom';
 /**
  * Pet Vaccines Page
  * Displays all vaccines for a specific pet
  */
 import { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -17,14 +16,12 @@ import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { useGetPets } from 'src/hooks/usePetsQuery';
 import { useDeleteVaccine, useGetVaccinesByPetId } from 'src/hooks/useVaccinesQuery';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -32,14 +29,13 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import RowActions from 'src/components/row-actions';
 
+import PetHeader from 'src/sections/pets/pet-header';
 import VaccineFormDialog from 'src/sections/vaccines/vaccine-form-dialog';
 
 // -----------------------------------------------------------------------
 
 export default function PetVacinasPage() {
   const { petId } = useParams();
-  const navigate = useNavigate();
-  const { data: allPets } = useGetPets();
   const { data: petVaccines, isLoading } = useGetVaccinesByPetId(petId);
   const deleteVaccineMutation = useDeleteVaccine();
 
@@ -55,12 +51,6 @@ export default function PetVacinasPage() {
     message: '',
     severity: 'success',
   });
-
-  const currentPet = allPets?.find((p) => p.id === petId);
-
-  const handleBackToPets = useCallback(() => {
-    navigate('/pets');
-  }, [navigate]);
 
   const handleAddVaccine = useCallback(() => {
     setOpenVaccineDialog(true);
@@ -110,22 +100,18 @@ export default function PetVacinasPage() {
     <>
       <title>Vacinas - VetFlow</title>
       <DashboardContent maxWidth="lg">
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Button color="inherit" variant="text" onClick={handleBackToPets}>
-              ← Voltar
+        <PetHeader
+          action={
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={handleAddVaccine}
+            >
+              Nova Vacinação
             </Button>
-            <Typography variant="h4">Vacinas de {currentPet?.name || 'Carregando...'}</Typography>
-          </Stack>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={handleAddVaccine}
-          >
-            Nova Vacinação
-          </Button>
-        </Stack>
+          }
+        />
 
         <Card sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider' }}>
           {isLoading ? (

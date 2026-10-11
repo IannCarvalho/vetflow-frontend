@@ -107,34 +107,6 @@ export default function PetsPage() {
   // Current page slice of the already-filtered list (pagination is client-side)
   const paginatedPets = useMemo(() => paginate(filteredPets), [paginate, filteredPets]);
 
-  const handleViewVaccines = useCallback(
-    (petId: string) => {
-      navigate(`/pets/${petId}/vacinas`);
-    },
-    [navigate]
-  );
-
-  const handleViewConsultations = useCallback(
-    (petId: string) => {
-      navigate(`/pets/${petId}/consultas`);
-    },
-    [navigate]
-  );
-
-  const handleViewPrescriptions = useCallback(
-    (petId: string) => {
-      navigate(`/pets/${petId}/receitas`);
-    },
-    [navigate]
-  );
-
-  const handleViewAttachments = useCallback(
-    (petId: string) => {
-      navigate(`/pets/${petId}/anexos`);
-    },
-    [navigate]
-  );
-
   const handleViewProntuario = useCallback(
     (petId: string) => {
       navigate(`/pets/${petId}/prontuario`);
@@ -256,10 +228,6 @@ export default function PetsPage() {
                   petId={pet.id}
                   onViewProntuario={handleViewProntuario}
                   onEdit={() => handleEditPet(pet)}
-                  onViewConsultations={handleViewConsultations}
-                  onViewVaccines={handleViewVaccines}
-                  onViewPrescriptions={handleViewPrescriptions}
-                  onViewAttachments={handleViewAttachments}
                   onDelete={handleDeleteClick}
                 />
               </TableCell>
