@@ -13,7 +13,6 @@ import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
@@ -22,7 +21,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -37,6 +35,7 @@ import { getApiErrorMessage } from 'src/utils/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 
 import CatalogFormDialog from 'src/sections/catalog/catalog-form-dialog';
 
@@ -284,20 +283,23 @@ export default function CatalogoPage() {
                           />
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip title="Editar">
-                            <IconButton size="small" onClick={() => handleEdit(item)}>
-                              <Iconify icon="solar:pen-bold" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Excluir">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDeleteClick(item.id)}
-                            >
-                              <Iconify icon="solar:trash-bin-trash-bold" />
-                            </IconButton>
-                          </Tooltip>
+                          <RowActions
+                            actions={[
+                              {
+                                key: 'edit',
+                                label: 'Editar',
+                                icon: 'solar:pen-bold',
+                                onClick: () => handleEdit(item),
+                              },
+                              {
+                                key: 'delete',
+                                label: 'Excluir',
+                                icon: 'solar:trash-bin-trash-bold',
+                                destructive: true,
+                                onClick: () => handleDeleteClick(item.id),
+                              },
+                            ]}
+                          />
                         </TableCell>
                       </TableRow>
                     );

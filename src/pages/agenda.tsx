@@ -13,11 +13,9 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
-import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -32,6 +30,7 @@ import { getApiErrorMessage } from 'src/utils/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import RowActions from 'src/components/row-actions';
 
 import AppointmentFormDialog from 'src/sections/appointments/appointment-form-dialog';
 import {
@@ -280,22 +279,23 @@ export default function AgendaPage() {
                           variant={a.status === 'cancelled' ? 'outlined' : 'filled'}
                         />
 
-                        <Box>
-                          <Tooltip title="Editar">
-                            <IconButton size="small" onClick={() => handleEdit(a)}>
-                              <Iconify icon="solar:pen-bold" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Excluir">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDeleteClick(a.id)}
-                            >
-                              <Iconify icon="solar:trash-bin-trash-bold" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
+                        <RowActions
+                          actions={[
+                            {
+                              key: 'edit',
+                              label: 'Editar',
+                              icon: 'solar:pen-bold',
+                              onClick: () => handleEdit(a),
+                            },
+                            {
+                              key: 'delete',
+                              label: 'Excluir',
+                              icon: 'solar:trash-bin-trash-bold',
+                              destructive: true,
+                              onClick: () => handleDeleteClick(a.id),
+                            },
+                          ]}
+                        />
                       </Stack>
                     </Box>
                   ))}
