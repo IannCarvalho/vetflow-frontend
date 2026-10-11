@@ -5,30 +5,16 @@ import * as yup from 'yup';
  * Pet Form Dialog Component
  * Modal form for creating/editing pets
  */
-import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { Controller } from 'react-hook-form';
 
-import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import Dialog from '@mui/material/Dialog';
-import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
-import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import DialogTitle from '@mui/material/DialogTitle';
-import FormControl from '@mui/material/FormControl';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import CircularProgress from '@mui/material/CircularProgress';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
+import { useEntityForm } from 'src/hooks/useEntityForm';
 import { useCreatePet, useUpdatePet } from 'src/hooks/usePetsQuery';
 
-import { getApiErrorMessage } from 'src/utils/api-error';
+import { RHFSelect, RHFTextField, FormDialogShell } from 'src/components/form';
 
 // -----------------------------------------------------------------------
 
@@ -54,6 +40,17 @@ const petSchema = yup.object({
     .max(200, 'Peso inválido'),
 });
 
+interface PetFormValues {
+  name: string;
+  species: string;
+  breed: string;
+  age: number;
+  age_unit: 'months' | 'years';
+  sex: 'male' | 'female';
+  neutered: boolean;
+  weight: number;
+}
+
 interface PetFormDialogProps {
   open: boolean;
   onClose: () => void;
@@ -62,6 +59,17 @@ interface PetFormDialogProps {
   initialData?: { owner_id: string };
 }
 
+const DEFAULTS: PetFormValues = {
+  name: '',
+  species: '',
+  breed: '',
+  age: 1,
+  age_unit: 'years',
+  sex: 'male',
+  neutered: false,
+  weight: 0,
+};
+
 export default function PetFormDialog({
   open,
   onClose,
@@ -69,200 +77,127 @@ export default function PetFormDialog({
   onSuccess,
   initialData,
 }: PetFormDialogProps) {
-  const createPetMutation = useCreatePet();
-  const updatePetMutation = useUpdatePet();
+  const createMutation = useCreatePet();
+  const updateMutation = useUpdatePet();
 
-  const [submitError, setSubmitError] = useState('');
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(petSchema),
-    defaultValues: {
-      name: '',
-      species: '',
-      breed: '',
-      age: 1,
-      age_unit: 'years',
-      sex: 'male',
-      neutered: false,
-      weight: 0,
+  const { control, isLoading, isEdit, submitError, clearError, onSubmit } = useEntityForm<
+    PetFormValues,
+    ReturnType<typeof buildPayload>,
+    Pet
+  >({
+    createMutation,
+    updateMutation,
+    schema: petSchema,
+    defaultValues: DEFAULTS,
+    entity: pet,
+    resetDeps: [initialData],
+    toFormValues: (p) => ({
+      name: p.name,
+      species: p.species,
+      breed: p.breed ?? '',
+      age: p.age,
+      age_unit: p.age_unit,
+      sex: p.sex,
+      neutered: p.neutered ?? false,
+      weight: p.weight,
+    }),
+    toPayload: (data) => buildPayload(data, pet),
+    messages: {
+      createSuccess: 'Pet criado com sucesso!',
+      updateSuccess: 'Pet atualizado com sucesso!',
+      createError: 'Erro ao criar pet',
+      updateError: 'Erro ao atualizar pet',
     },
-  });
-
-  useEffect(() => {
-    setSubmitError('');
-    if (pet) {
-      reset(pet);
-    } else {
-      reset({
-        name: '',
-        species: '',
-        breed: '',
-        age: 1,
-        age_unit: 'years',
-        sex: 'male',
-        neutered: false,
-        weight: 0,
-      });
-    }
-  }, [pet, initialData, reset]);
-
-  const isLoading = createPetMutation.isPending || updatePetMutation.isPending;
-
-  const onSubmit = handleSubmit((data: any) => {
-    setSubmitError('');
-    if (pet) {
-      updatePetMutation.mutate(
-        { id: pet.id, data },
-        {
-          onSuccess: () => {
-            onSuccess?.('Pet atualizado com sucesso!');
-            reset();
-          },
-          onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar pet')),
-        }
-      );
-    } else {
-      createPetMutation.mutate(data, {
-        onSuccess: () => {
-          onSuccess?.('Pet criado com sucesso!');
-          reset();
-        },
-        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar pet')),
-      });
-    }
+    onSuccess,
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{pet ? 'Editar Pet' : 'Novo Pet'}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <Stack spacing={2}>
-            {submitError && (
-              <Alert severity="error" onClose={() => setSubmitError('')}>
-                {submitError}
-              </Alert>
-            )}
-            <Controller
-              name="name"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Nome"
-                  fullWidth
-                  error={!!errors.name}
-                  helperText={errors.name?.message}
-                />
-              )}
-            />
+    <FormDialogShell
+      open={open}
+      onClose={onClose}
+      title={isEdit ? 'Editar Pet' : 'Novo Pet'}
+      isLoading={isLoading}
+      submitError={submitError}
+      onClearError={clearError}
+      onSubmit={onSubmit}
+      isEdit={isEdit}
+    >
+      <RHFTextField name="name" control={control} label="Nome" fullWidth />
 
-            <Controller
-              name="species"
-              control={control}
-              render={({ field }) => (
-                <FormControl fullWidth error={!!errors.species}>
-                  <InputLabel>Espécie</InputLabel>
-                  <Select {...field} label="Espécie">
-                    <MenuItem value="Cachorro">Cachorro</MenuItem>
-                    <MenuItem value="Gato">Gato</MenuItem>
-                    <MenuItem value="Outros">Outros</MenuItem>
-                  </Select>
-                </FormControl>
-              )}
-            />
+      <RHFSelect
+        name="species"
+        control={control}
+        label="Espécie"
+        fullWidth
+        options={[
+          { value: 'Cachorro', label: 'Cachorro' },
+          { value: 'Gato', label: 'Gato' },
+          { value: 'Outros', label: 'Outros' },
+        ]}
+      />
 
-            <Controller
-              name="breed"
-              control={control}
-              render={({ field }) => <TextField {...field} label="Raça" fullWidth />}
-            />
+      <RHFTextField name="breed" control={control} label="Raça" fullWidth />
 
-            <Stack direction="row" spacing={2}>
-              <Controller
-                name="age"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Idade"
-                    type="number"
-                    fullWidth
-                    error={!!errors.age}
-                    helperText={errors.age?.message}
-                  />
-                )}
-              />
+      <Stack direction="row" spacing={2}>
+        <RHFTextField name="age" control={control} label="Idade" type="number" fullWidth />
+        <RHFSelect
+          name="age_unit"
+          control={control}
+          label="Unidade"
+          fullWidth
+          options={[
+            { value: 'months', label: 'Meses' },
+            { value: 'years', label: 'Anos' },
+          ]}
+        />
+      </Stack>
 
-              <Controller
-                name="age_unit"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Unidade</InputLabel>
-                    <Select {...field} label="Unidade">
-                      <MenuItem value="months">Meses</MenuItem>
-                      <MenuItem value="years">Anos</MenuItem>
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Stack>
+      <RHFSelect
+        name="sex"
+        control={control}
+        label="Sexo"
+        fullWidth
+        options={[
+          { value: 'male', label: 'Macho' },
+          { value: 'female', label: 'Fêmea' },
+        ]}
+      />
 
-            <Controller
-              name="sex"
-              control={control}
-              render={({ field }) => (
-                <FormControl fullWidth error={!!errors.sex}>
-                  <InputLabel>Sexo</InputLabel>
-                  <Select {...field} label="Sexo">
-                    <MenuItem value="male">Macho</MenuItem>
-                    <MenuItem value="female">Fêmea</MenuItem>
-                  </Select>
-                </FormControl>
-              )}
-            />
+      <Controller
+        name="neutered"
+        control={control}
+        render={({ field }) => (
+          <FormControlLabel
+            control={<Checkbox {...field} checked={field.value || false} />}
+            label="Castrado/Esterilizado"
+          />
+        )}
+      />
 
-            <Controller
-              name="neutered"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value || false} />}
-                  label="Castrado/Esterilizado"
-                />
-              )}
-            />
-
-            <Controller
-              name="weight"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Peso (kg)"
-                  type="number"
-                  fullWidth
-                  error={!!errors.weight}
-                  helperText={errors.weight?.message}
-                />
-              )}
-            />
-          </Stack>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={onSubmit} variant="contained" disabled={isLoading}>
-          {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
-          {pet ? 'Atualizar' : 'Criar'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      <RHFTextField name="weight" control={control} label="Peso (kg)" type="number" fullWidth />
+    </FormDialogShell>
   );
+}
+
+// -----------------------------------------------------------------------
+
+/**
+ * Reconstrói o payload idêntico ao do dialog original:
+ * - CRIAÇÃO: enviava apenas os campos do formulário (sem `owner_id`).
+ * - EDIÇÃO: `reset(pet)` carregava a entidade inteira e o submit reenviava
+ *   `owner_id`. Reaproveitamos o `owner_id` da entidade em edição.
+ */
+function buildPayload(data: PetFormValues, pet: Pet | null | undefined) {
+  const base = {
+    name: data.name,
+    species: data.species,
+    breed: data.breed,
+    age: data.age,
+    age_unit: data.age_unit,
+    sex: data.sex,
+    neutered: data.neutered,
+    weight: data.weight,
+  };
+
+  return pet ? { ...base, owner_id: pet.owner_id } : (base as any);
 }

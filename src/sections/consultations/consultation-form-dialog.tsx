@@ -3,11 +3,11 @@
  * Modal form for creating/editing consultation records with multi-step form
  */
 import type { Consultation } from 'src/types';
+import type { Control, FieldPath } from 'react-hook-form';
 
 import * as yup from 'yup';
 import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { Controller } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 import Step from '@mui/material/Step';
@@ -18,16 +18,16 @@ import Dialog from '@mui/material/Dialog';
 import Stepper from '@mui/material/Stepper';
 import Checkbox from '@mui/material/Checkbox';
 import StepLabel from '@mui/material/StepLabel';
-import TextField from '@mui/material/TextField';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useEntityForm } from 'src/hooks/useEntityForm';
 import { useCreateConsultation, useUpdateConsultation } from 'src/hooks/useConsultationsQuery';
 
-import { getApiErrorMessage } from 'src/utils/api-error';
+import { RHFTextField } from 'src/components/form';
 
 // -----------------------------------------------------------------------
 
@@ -60,6 +60,31 @@ const consultationSchema = yup.object({
   physiological_respiratory_issues: yup.boolean(),
 });
 
+interface ConsultationFormValues {
+  date: string;
+  return_date: string;
+  summary_evolution_time: string;
+  summary_feces_urine: string;
+  summary_vaccines_and_deworming: string;
+  summary_medications: string;
+  summary_environment_and_contacts: string;
+  anamnesis_main_complaint: string;
+  anamnesis_evolution_time: string;
+  anamnesis_symptoms_worsened: boolean;
+  anamnesis_symptom_frequency: string;
+  anamnesis_behavior_change: boolean;
+  anamnesis_pain: boolean;
+  anamnesis_happened_before: boolean;
+  anamnesis_prior_vet_visit: boolean;
+  diet_food_type: string;
+  diet_amount_and_frequency: string;
+  diet_changed_recently: boolean;
+  diet_normal_water_intake: boolean;
+  physiological_normal_urine_feces: boolean;
+  physiological_vomiting: boolean;
+  physiological_respiratory_issues: boolean;
+}
+
 interface ConsultationFormDialogProps {
   open: boolean;
   onClose: () => void;
@@ -70,6 +95,31 @@ interface ConsultationFormDialogProps {
 
 const steps = ['Resumo', 'Anamnese', 'Dieta', 'Fisiológico'];
 
+const DEFAULTS: ConsultationFormValues = {
+  date: new Date().toISOString().split('T')[0],
+  return_date: '',
+  summary_evolution_time: '',
+  summary_feces_urine: '',
+  summary_vaccines_and_deworming: '',
+  summary_medications: '',
+  summary_environment_and_contacts: '',
+  anamnesis_main_complaint: '',
+  anamnesis_evolution_time: '',
+  anamnesis_symptoms_worsened: false,
+  anamnesis_symptom_frequency: '',
+  anamnesis_behavior_change: false,
+  anamnesis_pain: false,
+  anamnesis_happened_before: false,
+  anamnesis_prior_vet_visit: false,
+  diet_food_type: '',
+  diet_amount_and_frequency: '',
+  diet_changed_recently: false,
+  diet_normal_water_intake: false,
+  physiological_normal_urine_feces: false,
+  physiological_vomiting: false,
+  physiological_respiratory_issues: false,
+};
+
 export default function ConsultationFormDialog({
   open,
   onClose,
@@ -78,100 +128,66 @@ export default function ConsultationFormDialog({
   initialData,
 }: ConsultationFormDialogProps) {
   const [activeStep, setActiveStep] = useState(0);
-  const [submitError, setSubmitError] = useState('');
-  const createConsultationMutation = useCreateConsultation();
-  const updateConsultationMutation = useUpdateConsultation();
+  const createMutation = useCreateConsultation();
+  const updateMutation = useUpdateConsultation();
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(consultationSchema),
-    defaultValues: {
-      date: new Date().toISOString().split('T')[0],
-      return_date: '',
-      summary_evolution_time: '',
-      summary_feces_urine: '',
-      summary_vaccines_and_deworming: '',
-      summary_medications: '',
-      summary_environment_and_contacts: '',
-      anamnesis_main_complaint: '',
-      anamnesis_evolution_time: '',
-      anamnesis_symptoms_worsened: false,
-      anamnesis_symptom_frequency: '',
-      anamnesis_behavior_change: false,
-      anamnesis_pain: false,
-      anamnesis_happened_before: false,
-      anamnesis_prior_vet_visit: false,
-      diet_food_type: '',
-      diet_amount_and_frequency: '',
-      diet_changed_recently: false,
-      diet_normal_water_intake: false,
-      physiological_normal_urine_feces: false,
-      physiological_vomiting: false,
-      physiological_respiratory_issues: false,
+  const { control, isLoading, isEdit, submitError, clearError, onSubmit } = useEntityForm<
+    ConsultationFormValues,
+    ConsultationPayload,
+    Consultation
+  >({
+    createMutation,
+    updateMutation,
+    schema: consultationSchema,
+    defaultValues: DEFAULTS,
+    entity: consultation,
+    resetDeps: [initialData, open],
+    toFormValues: (c) => ({
+      date: c.date,
+      return_date: c.return_date || '',
+      summary_evolution_time: c.summary?.evolution_time || '',
+      summary_feces_urine: c.summary?.feces_urine || '',
+      summary_vaccines_and_deworming: c.summary?.vaccines_and_deworming || '',
+      summary_medications: c.summary?.medications || '',
+      summary_environment_and_contacts: c.summary?.environment_and_contacts || '',
+      anamnesis_main_complaint: c.anamnesis?.main_complaint || '',
+      anamnesis_evolution_time: c.anamnesis?.evolution_time || '',
+      anamnesis_symptoms_worsened: c.anamnesis?.symptoms_worsened || false,
+      anamnesis_symptom_frequency: c.anamnesis?.symptom_frequency || '',
+      anamnesis_behavior_change: c.anamnesis?.behavior_change || false,
+      anamnesis_pain: c.anamnesis?.pain || false,
+      anamnesis_happened_before: c.anamnesis?.happened_before || false,
+      anamnesis_prior_vet_visit: c.anamnesis?.prior_vet_visit || false,
+      diet_food_type: c.diet?.food_type || '',
+      diet_amount_and_frequency: c.diet?.amount_and_frequency || '',
+      diet_changed_recently: c.diet?.diet_changed_recently || false,
+      diet_normal_water_intake: c.diet?.normal_water_intake || false,
+      physiological_normal_urine_feces: c.physiological?.normal_urine_feces || false,
+      physiological_vomiting: c.physiological?.vomiting || false,
+      physiological_respiratory_issues: c.physiological?.respiratory_issues || false,
+    }),
+    beforeSubmit: () => {
+      const petId = consultation?.pet_id || initialData?.pet_id;
+      return petId ? undefined : 'Não foi possível identificar o pet desta consulta.';
+    },
+    toPayload: (data) => buildPayload(data, consultation, initialData),
+    messages: {
+      createSuccess: 'Consulta criada com sucesso!',
+      updateSuccess: 'Consulta atualizada com sucesso!',
+      createError: 'Erro ao criar consulta',
+      updateError: 'Erro ao atualizar consulta',
+    },
+    onSuccess: (message) => {
+      onSuccess?.(message);
+      setActiveStep(0);
     },
   });
 
+  // O chassi reseta os valores do formulário; aqui mantemos apenas o reset do
+  // passo ativo do wizard, espelhando o `setActiveStep(0)` do efeito original.
   useEffect(() => {
-    if (consultation) {
-      reset({
-        date: consultation.date,
-        return_date: consultation.return_date || '',
-        summary_evolution_time: consultation.summary?.evolution_time || '',
-        summary_feces_urine: consultation.summary?.feces_urine || '',
-        summary_vaccines_and_deworming: consultation.summary?.vaccines_and_deworming || '',
-        summary_medications: consultation.summary?.medications || '',
-        summary_environment_and_contacts: consultation.summary?.environment_and_contacts || '',
-        anamnesis_main_complaint: consultation.anamnesis?.main_complaint || '',
-        anamnesis_evolution_time: consultation.anamnesis?.evolution_time || '',
-        anamnesis_symptoms_worsened: consultation.anamnesis?.symptoms_worsened || false,
-        anamnesis_symptom_frequency: consultation.anamnesis?.symptom_frequency || '',
-        anamnesis_behavior_change: consultation.anamnesis?.behavior_change || false,
-        anamnesis_pain: consultation.anamnesis?.pain || false,
-        anamnesis_happened_before: consultation.anamnesis?.happened_before || false,
-        anamnesis_prior_vet_visit: consultation.anamnesis?.prior_vet_visit || false,
-        diet_food_type: consultation.diet?.food_type || '',
-        diet_amount_and_frequency: consultation.diet?.amount_and_frequency || '',
-        diet_changed_recently: consultation.diet?.diet_changed_recently || false,
-        diet_normal_water_intake: consultation.diet?.normal_water_intake || false,
-        physiological_normal_urine_feces: consultation.physiological?.normal_urine_feces || false,
-        physiological_vomiting: consultation.physiological?.vomiting || false,
-        physiological_respiratory_issues: consultation.physiological?.respiratory_issues || false,
-      });
-    } else {
-      reset({
-        date: new Date().toISOString().split('T')[0],
-        return_date: '',
-        summary_evolution_time: '',
-        summary_feces_urine: '',
-        summary_vaccines_and_deworming: '',
-        summary_medications: '',
-        summary_environment_and_contacts: '',
-        anamnesis_main_complaint: '',
-        anamnesis_evolution_time: '',
-        anamnesis_symptoms_worsened: false,
-        anamnesis_symptom_frequency: '',
-        anamnesis_behavior_change: false,
-        anamnesis_pain: false,
-        anamnesis_happened_before: false,
-        anamnesis_prior_vet_visit: false,
-        diet_food_type: '',
-        diet_amount_and_frequency: '',
-        diet_changed_recently: false,
-        diet_normal_water_intake: false,
-        physiological_normal_urine_feces: false,
-        physiological_vomiting: false,
-        physiological_respiratory_issues: false,
-      });
-    }
     setActiveStep(0);
-    setSubmitError('');
-  }, [consultation, initialData, reset, open]);
-
-  const isLoading = createConsultationMutation.isPending || updateConsultationMutation.isPending;
+  }, [consultation, open]);
 
   const handleNext = () => {
     if (activeStep < steps.length - 1) {
@@ -185,155 +201,71 @@ export default function ConsultationFormDialog({
     }
   };
 
-  const onSubmit = handleSubmit((data: any) => {
-    setSubmitError('');
-    const petId = consultation?.pet_id || initialData?.pet_id;
-
-    if (!petId) {
-      setSubmitError('Não foi possível identificar o pet desta consulta.');
-      return;
-    }
-
-    const consultationData = {
-      pet_id: petId,
-      date: new Date(data.date).toISOString(),
-      return_date: data.return_date ? new Date(data.return_date).toISOString() : null,
-      anamnesis: {
-        main_complaint: data.anamnesis_main_complaint,
-        evolution_time: data.anamnesis_evolution_time,
-        symptoms_worsened: data.anamnesis_symptoms_worsened,
-        symptom_frequency: data.anamnesis_symptom_frequency,
-        behavior_change: data.anamnesis_behavior_change,
-        pain: data.anamnesis_pain,
-        happened_before: data.anamnesis_happened_before,
-        prior_vet_visit: data.anamnesis_prior_vet_visit,
-      },
-      diet: {
-        food_type: data.diet_food_type,
-        amount_and_frequency: data.diet_amount_and_frequency,
-        diet_changed_recently: data.diet_changed_recently,
-        normal_water_intake: data.diet_normal_water_intake,
-      },
-      physiological: {
-        normal_urine_feces: data.physiological_normal_urine_feces,
-        vomiting: data.physiological_vomiting,
-        respiratory_issues: data.physiological_respiratory_issues,
-      },
-      summary: {
-        main_complaint: data.anamnesis_main_complaint,
-        evolution_time: data.summary_evolution_time,
-        feeding: '',
-        feces_urine: data.summary_feces_urine,
-        vaccines_and_deworming: data.summary_vaccines_and_deworming,
-        medications: data.summary_medications,
-        environment_and_contacts: data.summary_environment_and_contacts,
-      },
-    };
-
-    if (consultation) {
-      updateConsultationMutation.mutate(
-        { id: consultation.id, data: consultationData as any },
-        {
-          onSuccess: () => {
-            onSuccess?.('Consulta atualizada com sucesso!');
-            reset();
-            setActiveStep(0);
-          },
-          onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar consulta')),
-        }
-      );
-    } else {
-      createConsultationMutation.mutate(consultationData as any, {
-        onSuccess: () => {
-          onSuccess?.('Consulta criada com sucesso!');
-          reset();
-          setActiveStep(0);
-        },
-        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar consulta')),
-      });
-    }
-  });
-
   const renderStepContent = () => {
     switch (activeStep) {
       case 0: // Resumo
         return (
           <Stack spacing={2}>
-            <Controller
+            <RHFTextField
               name="date"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Data da Consulta"
-                  type="date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors.date}
-                  helperText={errors.date?.message}
-                />
-              )}
+              label="Data da Consulta"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
             />
 
-            <Controller
+            <RHFTextField
               name="return_date"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Data de Retorno (Recomendado)"
-                  type="date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors.return_date}
-                  helperText={errors.return_date?.message}
-                />
-              )}
+              label="Data de Retorno (Recomendado)"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
             />
 
-            <Controller
+            <RHFTextField
               name="summary_evolution_time"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Tempo de Evolução"
-                  fullWidth
-                  placeholder="Ex: 3 dias"
-                />
-              )}
+              label="Tempo de Evolução"
+              fullWidth
+              placeholder="Ex: 3 dias"
             />
 
-            <Controller
+            <RHFTextField
               name="summary_feces_urine"
               control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Fezes/Urina" fullWidth multiline rows={2} />
-              )}
+              label="Fezes/Urina"
+              fullWidth
+              multiline
+              rows={2}
             />
 
-            <Controller
+            <RHFTextField
               name="summary_vaccines_and_deworming"
               control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Vacinas e Vermífugo" fullWidth multiline rows={2} />
-              )}
+              label="Vacinas e Vermífugo"
+              fullWidth
+              multiline
+              rows={2}
             />
 
-            <Controller
+            <RHFTextField
               name="summary_medications"
               control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Medicações" fullWidth multiline rows={2} />
-              )}
+              label="Medicações"
+              fullWidth
+              multiline
+              rows={2}
             />
 
-            <Controller
+            <RHFTextField
               name="summary_environment_and_contacts"
               control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Ambiente e Contatos" fullWidth multiline rows={2} />
-              )}
+              label="Ambiente e Contatos"
+              fullWidth
+              multiline
+              rows={2}
             />
           </Stack>
         );
@@ -341,131 +273,51 @@ export default function ConsultationFormDialog({
       case 1: // Anamnese
         return (
           <Stack spacing={2}>
-            <Controller
+            <RHFTextField
               name="anamnesis_main_complaint"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Queixa Principal"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  error={!!errors.anamnesis_main_complaint}
-                  helperText={errors.anamnesis_main_complaint?.message}
-                />
-              )}
+              label="Queixa Principal"
+              fullWidth
+              multiline
+              rows={3}
             />
 
-            <Controller
+            <RHFTextField
               name="anamnesis_evolution_time"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Tempo de Evolução"
-                  fullWidth
-                  placeholder="Ex: 5 dias"
-                />
-              )}
+              label="Tempo de Evolução"
+              fullWidth
+              placeholder="Ex: 5 dias"
             />
 
-            <Controller
+            <RHFTextField
               name="anamnesis_symptom_frequency"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Frequência dos Sintomas"
-                  fullWidth
-                  placeholder="Ex: Intermitente, contínuo"
-                />
-              )}
+              label="Frequência dos Sintomas"
+              fullWidth
+              placeholder="Ex: Intermitente, contínuo"
             />
 
-            <Controller
+            <CheckboxField
               name="anamnesis_symptoms_worsened"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Sintomas Pioraram"
-                />
-              )}
+              label="Sintomas Pioraram"
             />
-
-            <Controller
+            <CheckboxField
               name="anamnesis_behavior_change"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Mudança de Comportamento"
-                />
-              )}
+              label="Mudança de Comportamento"
             />
-
-            <Controller
-              name="anamnesis_pain"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Dor"
-                />
-              )}
-            />
-
-            <Controller
+            <CheckboxField name="anamnesis_pain" control={control} label="Dor" />
+            <CheckboxField
               name="anamnesis_happened_before"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Já Aconteceu Antes"
-                />
-              )}
+              label="Já Aconteceu Antes"
             />
-
-            <Controller
+            <CheckboxField
               name="anamnesis_prior_vet_visit"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Visitou Veterinário Antes por Isso"
-                />
-              )}
+              label="Visitou Veterinário Antes por Isso"
             />
           </Stack>
         );
@@ -473,66 +325,33 @@ export default function ConsultationFormDialog({
       case 2: // Dieta
         return (
           <Stack spacing={2}>
-            <Controller
+            <RHFTextField
               name="diet_food_type"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Tipo de Alimento"
-                  fullWidth
-                  placeholder="Ex: Ração, comida caseira"
-                />
-              )}
+              label="Tipo de Alimento"
+              fullWidth
+              placeholder="Ex: Ração, comida caseira"
             />
 
-            <Controller
+            <RHFTextField
               name="diet_amount_and_frequency"
               control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Quantidade e Frequência"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  placeholder="Ex: 2 xícaras, 2x por dia"
-                />
-              )}
+              label="Quantidade e Frequência"
+              fullWidth
+              multiline
+              rows={2}
+              placeholder="Ex: 2 xícaras, 2x por dia"
             />
 
-            <Controller
+            <CheckboxField
               name="diet_changed_recently"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Dieta Mudou Recentemente"
-                />
-              )}
+              label="Dieta Mudou Recentemente"
             />
-
-            <Controller
+            <CheckboxField
               name="diet_normal_water_intake"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Ingestão de Água Normal"
-                />
-              )}
+              label="Ingestão de Água Normal"
             />
           </Stack>
         );
@@ -540,55 +359,16 @@ export default function ConsultationFormDialog({
       case 3: // Fisiológico
         return (
           <Stack spacing={2}>
-            <Controller
+            <CheckboxField
               name="physiological_normal_urine_feces"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Urina e Fezes Normais"
-                />
-              )}
+              label="Urina e Fezes Normais"
             />
-
-            <Controller
-              name="physiological_vomiting"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Vômito"
-                />
-              )}
-            />
-
-            <Controller
+            <CheckboxField name="physiological_vomiting" control={control} label="Vômito" />
+            <CheckboxField
               name="physiological_respiratory_issues"
               control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      checked={field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                    />
-                  }
-                  label="Problemas Respiratórios"
-                />
-              )}
+              label="Problemas Respiratórios"
             />
           </Stack>
         );
@@ -600,7 +380,7 @@ export default function ConsultationFormDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{consultation ? 'Editar Consulta' : 'Nova Consulta'}</DialogTitle>
+      <DialogTitle>{isEdit ? 'Editar Consulta' : 'Nova Consulta'}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 2 }}>
           <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
@@ -614,7 +394,7 @@ export default function ConsultationFormDialog({
           {renderStepContent()}
 
           {submitError && (
-            <Alert severity="error" sx={{ mt: 2 }} onClose={() => setSubmitError('')}>
+            <Alert severity="error" sx={{ mt: 2 }} onClose={clearError}>
               {submitError}
             </Alert>
           )}
@@ -634,10 +414,98 @@ export default function ConsultationFormDialog({
         ) : (
           <Button onClick={onSubmit} variant="contained" disabled={isLoading}>
             {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
-            {consultation ? 'Atualizar' : 'Criar'}
+            {isEdit ? 'Atualizar' : 'Criar'}
           </Button>
         )}
       </DialogActions>
     </Dialog>
   );
+}
+
+// -----------------------------------------------------------------------
+
+/** Checkbox controlado — o chassi RHF cobre apenas text/select. */
+function CheckboxField({
+  name,
+  control,
+  label,
+}: {
+  name: FieldPath<ConsultationFormValues>;
+  control: Control<ConsultationFormValues>;
+  label: string;
+}) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => (
+        <FormControlLabel
+          control={
+            <Checkbox
+              {...field}
+              checked={!!field.value}
+              onChange={(e) => field.onChange(e.target.checked)}
+            />
+          }
+          label={label}
+        />
+      )}
+    />
+  );
+}
+
+/**
+ * Payload de criação/edição da consulta. Igual ao `CreateConsultationInput` do
+ * hook (`Omit<Consultation, 'id' | 'created_at'>`). O `return_date` em runtime
+ * é `null` quando vazio — como no dialog original (que usava `as any`); por isso
+ * o retorno de `buildPayload` é afirmado para este tipo.
+ */
+type ConsultationPayload = Omit<Consultation, 'id' | 'created_at'>;
+
+function buildPayload(
+  data: ConsultationFormValues,
+  consultation: Consultation | null | undefined,
+  initialData?: { pet_id: string }
+): ConsultationPayload {
+  const petId = (consultation?.pet_id || initialData?.pet_id) as string;
+
+  return {
+    pet_id: petId,
+    date: new Date(data.date).toISOString(),
+    // runtime permanece `null` quando vazio (idêntico ao original); o cast cobre
+    // o tipo `string | undefined` de `Consultation.return_date`.
+    return_date: data.return_date
+      ? new Date(data.return_date).toISOString()
+      : (null as unknown as undefined),
+    anamnesis: {
+      main_complaint: data.anamnesis_main_complaint,
+      evolution_time: data.anamnesis_evolution_time,
+      symptoms_worsened: data.anamnesis_symptoms_worsened,
+      symptom_frequency: data.anamnesis_symptom_frequency,
+      behavior_change: data.anamnesis_behavior_change,
+      pain: data.anamnesis_pain,
+      happened_before: data.anamnesis_happened_before,
+      prior_vet_visit: data.anamnesis_prior_vet_visit,
+    },
+    diet: {
+      food_type: data.diet_food_type,
+      amount_and_frequency: data.diet_amount_and_frequency,
+      diet_changed_recently: data.diet_changed_recently,
+      normal_water_intake: data.diet_normal_water_intake,
+    },
+    physiological: {
+      normal_urine_feces: data.physiological_normal_urine_feces,
+      vomiting: data.physiological_vomiting,
+      respiratory_issues: data.physiological_respiratory_issues,
+    },
+    summary: {
+      main_complaint: data.anamnesis_main_complaint,
+      evolution_time: data.summary_evolution_time,
+      feeding: '',
+      feces_urine: data.summary_feces_urine,
+      vaccines_and_deworming: data.summary_vaccines_and_deworming,
+      medications: data.summary_medications,
+      environment_and_contacts: data.summary_environment_and_contacts,
+    },
+  };
 }

@@ -6,32 +6,25 @@ import * as yup from 'yup';
  * Modal form for creating/editing an invoice (financeiro) with a dynamic list
  * of billable items and a live total preview.
  */
-import { useMemo, useState, useEffect } from 'react';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useMemo } from 'react';
+import { useFieldArray } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import CircularProgress from '@mui/material/CircularProgress';
 
+import { useEntityForm } from 'src/hooks/useEntityForm';
 import { useGetClients } from 'src/hooks/useClientsQuery';
 import { useCreateInvoice, useUpdateInvoice } from 'src/hooks/useInvoicesQuery';
 
 import { toDateInput } from 'src/utils/format-time';
-import { getApiErrorMessage } from 'src/utils/api-error';
 
 import { Iconify } from 'src/components/iconify';
+import { RHFSelect, RHFTextField, FormDialogShell } from 'src/components/form';
 
 import {
   formatBRL,
@@ -96,59 +89,59 @@ export default function InvoiceFormDialog({
   const createMutation = useCreateInvoice();
   const updateMutation = useUpdateInvoice();
 
-  const [submitError, setSubmitError] = useState('');
+  const defaultValues = useMemo<InvoiceFormValues>(
+    () => ({
+      client_id: initialData?.client_id ?? '',
+      status: 'pending',
+      method: '',
+      issue_date: toDateInput(),
+      due_date: '',
+      discount: 0,
+      notes: '',
+      items: [{ ...emptyItem }],
+    }),
+    [initialData?.client_id]
+  );
 
-  const buildDefaults = (): InvoiceFormValues => ({
-    client_id: initialData?.client_id ?? '',
-    status: 'pending',
-    method: '',
-    issue_date: toDateInput(),
-    due_date: '',
-    discount: 0,
-    notes: '',
-    items: [{ ...emptyItem }],
-  });
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    watch,
-    formState: { errors },
-  } = useForm<InvoiceFormValues>({
-    resolver: yupResolver(invoiceSchema) as any,
-    defaultValues: buildDefaults(),
-  });
-
-  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
-
-  useEffect(() => {
-    setSubmitError('');
-    if (invoice) {
-      reset({
-        client_id: invoice.client_id,
-        status: invoice.status,
-        method: invoice.method ?? '',
-        issue_date: toDateInput(invoice.issue_date),
-        due_date: invoice.due_date ? toDateInput(invoice.due_date) : '',
-        discount: invoice.discount ?? 0,
-        notes: invoice.notes ?? '',
+  const { control, watch, isLoading, isEdit, submitError, clearError, onSubmit, formState } =
+    useEntityForm<InvoiceFormValues, ReturnType<typeof buildPayload>, Invoice>({
+      createMutation,
+      updateMutation,
+      schema: invoiceSchema,
+      defaultValues,
+      entity: invoice,
+      resetOnSuccess: false,
+      resetDeps: [defaultValues, open],
+      toFormValues: (inv) => ({
+        client_id: inv.client_id,
+        status: inv.status,
+        method: inv.method ?? '',
+        issue_date: toDateInput(inv.issue_date),
+        due_date: inv.due_date ? toDateInput(inv.due_date) : '',
+        discount: inv.discount ?? 0,
+        notes: inv.notes ?? '',
         items:
-          invoice.items && invoice.items.length > 0
-            ? invoice.items.map((it) => ({
+          inv.items && inv.items.length > 0
+            ? inv.items.map((it) => ({
                 description: it.description,
                 quantity: it.quantity,
                 unit_price: it.unit_price,
               }))
             : [{ ...emptyItem }],
-      });
-    } else {
-      reset(buildDefaults());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoice, reset, open]);
+      }),
+      toPayload: buildPayload,
+      messages: {
+        createSuccess: 'Fatura criada com sucesso!',
+        updateSuccess: 'Fatura atualizada com sucesso!',
+        createError: 'Erro ao criar fatura',
+        updateError: 'Erro ao atualizar fatura',
+      },
+      onSuccess,
+    });
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+
+  const { errors } = formState;
 
   // Live totals preview
   const watchedItems = watch('items');
@@ -165,258 +158,160 @@ export default function InvoiceFormDialog({
 
   const clientOptions = useMemo(() => clients ?? [], [clients]);
 
-  const onSubmit = handleSubmit((data) => {
-    setSubmitError('');
-
-    const payload = {
-      client_id: data.client_id,
-      status: data.status,
-      method: data.method || undefined,
-      issue_date: new Date(data.issue_date).toISOString(),
-      due_date: data.due_date ? new Date(data.due_date).toISOString() : undefined,
-      discount: Number(data.discount) || 0,
-      notes: data.notes?.trim() || '',
-      // Totals are recomputed on the server; send 0 placeholders.
-      subtotal: 0,
-      total: 0,
-      items: data.items.map((it) => ({
-        description: it.description.trim(),
-        quantity: Number(it.quantity) || 0,
-        unit_price: Number(it.unit_price) || 0,
-        total: 0,
-      })),
-    };
-
-    if (invoice) {
-      updateMutation.mutate(
-        { id: invoice.id, data: payload },
-        {
-          onSuccess: () => onSuccess?.('Fatura atualizada com sucesso!'),
-          onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao atualizar fatura')),
-        }
-      );
-    } else {
-      createMutation.mutate(payload, {
-        onSuccess: () => onSuccess?.('Fatura criada com sucesso!'),
-        onError: (error) => setSubmitError(getApiErrorMessage(error, 'Erro ao criar fatura')),
-      });
-    }
-  });
-
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{invoice ? 'Editar Fatura' : 'Nova Fatura'}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <Stack spacing={2}>
-            {submitError && (
-              <Alert severity="error" onClose={() => setSubmitError('')}>
-                {submitError}
-              </Alert>
-            )}
+    <FormDialogShell
+      open={open}
+      onClose={onClose}
+      title={isEdit ? 'Editar Fatura' : 'Nova Fatura'}
+      isLoading={isLoading}
+      submitError={submitError}
+      onClearError={clearError}
+      onSubmit={onSubmit}
+      isEdit={isEdit}
+      maxWidth="md"
+    >
+      <RHFSelect
+        name="client_id"
+        control={control}
+        label="Cliente"
+        fullWidth
+        emptyLabel="Nenhum cliente cadastrado"
+        options={clientOptions.map((client: Client) => ({
+          value: client.id,
+          label: client.full_name,
+        }))}
+      />
 
-            <Controller
-              name="client_id"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  select
-                  label="Cliente"
-                  fullWidth
-                  error={!!errors.client_id}
-                  helperText={errors.client_id?.message}
-                >
-                  {clientOptions.length === 0 ? (
-                    <MenuItem value="" disabled>
-                      Nenhum cliente cadastrado
-                    </MenuItem>
-                  ) : (
-                    clientOptions.map((client: Client) => (
-                      <MenuItem key={client.id} value={client.id}>
-                        {client.full_name}
-                      </MenuItem>
-                    ))
-                  )}
-                </TextField>
-              )}
-            />
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <RHFTextField
+          name="issue_date"
+          control={control}
+          label="Emissão"
+          type="date"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+        />
+        <RHFTextField
+          name="due_date"
+          control={control}
+          label="Vencimento (opcional)"
+          type="date"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+        />
+      </Stack>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Controller
-                name="issue_date"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Emissão"
-                    type="date"
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    error={!!errors.issue_date}
-                    helperText={errors.issue_date?.message}
-                  />
-                )}
-              />
-              <Controller
-                name="due_date"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Vencimento (opcional)"
-                    type="date"
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                  />
-                )}
-              />
-            </Stack>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <RHFSelect
+          name="status"
+          control={control}
+          label="Status"
+          fullWidth
+          options={PAYMENT_STATUS_OPTIONS}
+        />
+        <RHFSelect
+          name="method"
+          control={control}
+          label="Forma de pagamento"
+          fullWidth
+          options={PAYMENT_METHOD_OPTIONS}
+        />
+      </Stack>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} select label="Status" fullWidth>
-                    {PAYMENT_STATUS_OPTIONS.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
-              <Controller
-                name="method"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} select label="Forma de pagamento" fullWidth>
-                    {PAYMENT_METHOD_OPTIONS.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
-            </Stack>
-
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              <Typography variant="subtitle1">Itens</Typography>
-              <Button
-                size="small"
-                startIcon={<Iconify icon="mingcute:add-line" />}
-                onClick={() => append({ ...emptyItem })}
-              >
-                Adicionar item
-              </Button>
-            </Stack>
-
-            {typeof errors.items?.message === 'string' && (
-              <Alert severity="warning">{errors.items.message}</Alert>
-            )}
-
-            {fields.map((fieldItem, index) => (
-              <Stack
-                key={fieldItem.id}
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1.5}
-                alignItems="flex-start"
-              >
-                <Controller
-                  name={`items.${index}.description`}
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Descrição"
-                      fullWidth
-                      error={!!errors.items?.[index]?.description}
-                      helperText={errors.items?.[index]?.description?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name={`items.${index}.quantity`}
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Qtd"
-                      type="number"
-                      sx={{ maxWidth: { sm: 100 } }}
-                      error={!!errors.items?.[index]?.quantity}
-                      helperText={errors.items?.[index]?.quantity?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name={`items.${index}.unit_price`}
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Preço unit."
-                      type="number"
-                      sx={{ maxWidth: { sm: 140 } }}
-                      error={!!errors.items?.[index]?.unit_price}
-                      helperText={errors.items?.[index]?.unit_price?.message}
-                    />
-                  )}
-                />
-                <IconButton
-                  color="error"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                  sx={{ mt: 0.5 }}
-                >
-                  <Iconify icon="solar:trash-bin-trash-bold" />
-                </IconButton>
-              </Stack>
-            ))}
-
-            <Divider />
-
-            <Controller
-              name="discount"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Desconto (R$)"
-                  type="number"
-                  sx={{ maxWidth: 200 }}
-                  error={!!errors.discount}
-                  helperText={errors.discount?.message}
-                />
-              )}
-            />
-
-            <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="body2" color="text.secondary">
-                Subtotal: {formatBRL(subtotal)}
-              </Typography>
-              <Typography variant="h6">Total: {formatBRL(total)}</Typography>
-            </Box>
-
-            <Controller
-              name="notes"
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} label="Observações" fullWidth multiline rows={2} />
-              )}
-            />
-          </Stack>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={onSubmit} variant="contained" disabled={isLoading}>
-          {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
-          {invoice ? 'Atualizar' : 'Criar'}
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography variant="subtitle1">Itens</Typography>
+        <Button
+          size="small"
+          startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={() => append({ ...emptyItem })}
+        >
+          Adicionar item
         </Button>
-      </DialogActions>
-    </Dialog>
+      </Stack>
+
+      {typeof errors.items?.message === 'string' && (
+        <Alert severity="warning">{errors.items.message}</Alert>
+      )}
+
+      {fields.map((fieldItem, index) => (
+        <Stack
+          key={fieldItem.id}
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          alignItems="flex-start"
+        >
+          <RHFTextField
+            name={`items.${index}.description`}
+            control={control}
+            label="Descrição"
+            fullWidth
+          />
+          <RHFTextField
+            name={`items.${index}.quantity`}
+            control={control}
+            label="Qtd"
+            type="number"
+            sx={{ maxWidth: { sm: 100 } }}
+          />
+          <RHFTextField
+            name={`items.${index}.unit_price`}
+            control={control}
+            label="Preço unit."
+            type="number"
+            sx={{ maxWidth: { sm: 140 } }}
+          />
+          <IconButton
+            color="error"
+            onClick={() => remove(index)}
+            disabled={fields.length === 1}
+            sx={{ mt: 0.5 }}
+          >
+            <Iconify icon="solar:trash-bin-trash-bold" />
+          </IconButton>
+        </Stack>
+      ))}
+
+      <Divider />
+
+      <RHFTextField
+        name="discount"
+        control={control}
+        label="Desconto (R$)"
+        type="number"
+        sx={{ maxWidth: 200 }}
+      />
+
+      <Box sx={{ textAlign: 'right' }}>
+        <Typography variant="body2" color="text.secondary">
+          Subtotal: {formatBRL(subtotal)}
+        </Typography>
+        <Typography variant="h6">Total: {formatBRL(total)}</Typography>
+      </Box>
+
+      <RHFTextField name="notes" control={control} label="Observações" fullWidth multiline rows={2} />
+    </FormDialogShell>
   );
+}
+
+// -----------------------------------------------------------------------
+
+function buildPayload(data: InvoiceFormValues) {
+  return {
+    client_id: data.client_id,
+    status: data.status,
+    method: data.method || undefined,
+    issue_date: new Date(data.issue_date).toISOString(),
+    due_date: data.due_date ? new Date(data.due_date).toISOString() : undefined,
+    discount: Number(data.discount) || 0,
+    notes: data.notes?.trim() || '',
+    // Totals are recomputed on the server; send 0 placeholders.
+    subtotal: 0,
+    total: 0,
+    items: data.items.map((it) => ({
+      description: it.description.trim(),
+      quantity: Number(it.quantity) || 0,
+      unit_price: Number(it.unit_price) || 0,
+      total: 0,
+    })),
+  };
 }
