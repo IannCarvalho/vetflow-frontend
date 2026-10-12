@@ -87,6 +87,20 @@ and the AI answers using **real data**, fetched through the
 [`vetflow-agent`](../vetflow-agent) API (which in turn calls the `vetflow-mcp`
 tools against the backend).
 
+```mermaid
+flowchart LR
+    user([User])
+    widget["chat-widget<br/>(localStorage: BYOK key)"]
+    agent["vetflow-agent API<br/>VITE_AGENT_API_URL"]
+    mcp["vetflow-mcp → backend"]
+    llm{{"LLM<br/>(provider do usuário ou do servidor)"}}
+
+    user --> widget
+    widget -- "POST /chat (+ model/api_key)" --> agent
+    agent --> llm
+    agent --> mcp
+```
+
 - **Backend dependency:** the widget talks to the agent API at
   `VITE_AGENT_API_URL` (default `http://localhost:8700`) — a service separate
   from the main backend. It uses its own Axios client (`src/api/agentApi.ts`),
