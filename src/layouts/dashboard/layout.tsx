@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
+import { ChatWidget } from 'src/components/chat-widget';
 import { GlobalSearch } from 'src/components/global-search/global-search';
 import { NotificationsCenter } from 'src/components/notifications-center';
 
@@ -143,6 +144,9 @@ export function DashboardLayout({
     >
       {renderMain()}
       </LayoutSection>
+
+      {/* Assistente VetFlow -- widget flutuante presente em todas as telas */}
+      <ChatWidget />
     </>
   );
 }
