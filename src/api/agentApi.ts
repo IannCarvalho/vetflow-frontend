@@ -26,6 +26,17 @@ const agentApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Repassa o JWT do USUÁRIO LOGADO ao agente (pass-through): o chat age como o
+// usuário, não como uma conta de serviço. É a mesma chave usada pelo axios do
+// backend (`auth_token`); o agente lê este header e injeta no MCP.
+agentApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // ----------------------------------------------------------------------
 
 /** Papel de uma mensagem no histórico enviado ao agente (formato OpenAI). */
