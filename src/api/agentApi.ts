@@ -51,18 +51,86 @@ export type ProviderInfo = {
   provider: string;
 };
 
-/** Envia uma mensagem ao agente, com o histórico acumulado. */
+/** Config BYOK do usuário, guardada só no localStorage do navegador. */
+export type AgentConfig = {
+  provider: string; // '', 'openai', 'anthropic', 'gemini', 'bedrock'
+  model: string; // string de modelo LiteLLM (ex.: 'gpt-4o')
+  apiKey: string; // chave do usuário -- NUNCA sai do navegador, exceto no POST /chat
+};
+
+const STORAGE_KEY = 'vetflow_agent_config';
+
+export function loadAgentConfig(): AgentConfig {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        provider: parsed.provider ?? '',
+        model: parsed.model ?? '',
+        apiKey: parsed.apiKey ?? '',
+      };
+    }
+  } catch {
+    // localStorage indisponível ou JSON inválido -> config vazia.
+  }
+  return { provider: '', model: '', apiKey: '' };
+}
+
+export function saveAgentConfig(cfg: AgentConfig): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  } catch {
+    // Sem localStorage (modo privado restrito): a config não persiste, mas o
+    // app segue funcionando com o provider do servidor.
+  }
+}
+
+export function clearAgentConfig(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // nada a fazer
+  }
+}
+
+/** Envia uma mensagem ao agente, com o histórico acumulado e (opcional) BYOK. */
 export async function sendChat(
   message: string,
-  history: { role: ChatRole; content: string }[]
+  history: { role: ChatRole; content: string }[],
+  config?: Pick<AgentConfig, 'model' | 'apiKey'>
 ): Promise<ChatResponse> {
-  const { data } = await agentApi.post<ChatResponse>('/chat', { message, history });
+  const body: Record<string, unknown> = { message, history };
+  // Só envia model/api_key quando o usuário configurou (BYOK). Senão, o agente
+  // usa o provider do próprio servidor.
+  if (config?.model) body.model = config.model;
+  if (config?.apiKey) body.api_key = config.apiKey;
+  const { data } = await agentApi.post<ChatResponse>('/chat', body);
   return data;
 }
 
 /** Lê qual provider/modelo o agente usará (para exibir na UI). */
 export async function getProvider(): Promise<ProviderInfo> {
   const { data } = await agentApi.get<ProviderInfo>('/providers');
+  return data;
+}
+
+/** Resposta do POST /providers/models. */
+export type ModelsResponse = {
+  ok: boolean;
+  models: string[];
+  error: string | null;
+};
+
+/**
+ * Valida a key e lista os modelos reais do provider (custo zero).
+ * ok=false => key inválida/sem acesso (a UI deve avisar).
+ */
+export async function listModels(provider: string, apiKey: string): Promise<ModelsResponse> {
+  const { data } = await agentApi.post<ModelsResponse>('/providers/models', {
+    provider,
+    api_key: apiKey,
+  });
   return data;
 }
 

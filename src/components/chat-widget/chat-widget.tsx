@@ -30,9 +30,13 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import ChatIcon from '@mui/icons-material/ChatBubbleOutline';
 import CircularProgress from '@mui/material/CircularProgress';
+import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import BuildIcon from '@mui/icons-material/BuildCircleOutlined';
 
-import { sendChat, getProvider } from 'src/api/agentApi';
+import { sendChat, getProvider, loadAgentConfig } from 'src/api/agentApi';
+
+import { ChatSettings } from './chat-settings';
+import { MarkdownLite } from './markdown-lite';
 
 // ----------------------------------------------------------------------
 
@@ -50,19 +54,53 @@ const WELCOME: UiMessage = {
     'agenda ou as métricas da clínica. 🐾',
 };
 
+/** Encurta o rótulo do provider para o cabeçalho (sem o id longo do modelo). */
+function shortProvider(full: string): string {
+  const lower = full.toLowerCase();
+  let base = full;
+  if (lower.includes('bedrock')) base = 'Amazon Bedrock';
+  else if (lower.includes('openai') || lower.includes('gpt')) base = 'OpenAI';
+  else if (lower.includes('gemini')) base = 'Google Gemini';
+  else if (lower.includes('anthropic') || lower.includes('claude')) base = 'Anthropic';
+
+  // Tenta extrair um nome de família amigável do modelo (ex.: "sonnet-4-5").
+  const fam = full.match(/claude[-\s]?(sonnet|opus|haiku)[-\s]?([\d-]+)/i);
+  if (fam) {
+    const num = fam[2].replace(/-/g, '.').replace(/\.$/, '');
+    return `${base} · Claude ${cap(fam[1])} ${num}`;
+  }
+  const gpt = full.match(/gpt[-\s]?([\w.-]+)/i);
+  if (gpt) return `${base} · GPT ${gpt[1]}`;
+  const gem = full.match(/gemini[-/]?([\w.-]+)/i);
+  if (gem && base === 'Google Gemini') return `${base} · ${gem[1]}`;
+  return base;
+}
+
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [messages, setMessages] = useState<UiMessage[]>([WELCOME]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState<string>('');
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Lê o provider ativo ao abrir pela primeira vez (best-effort, silencioso).
+  // Define o rótulo do provider no cabeçalho. Prioriza a config BYOK local (o
+  // que o usuário escolheu no ⚙️); só consulta o /providers do servidor quando
+  // não há BYOK configurado -- senão o header mostraria o provider errado.
   useEffect(() => {
     if (!open || provider) return;
+    const cfg = loadAgentConfig();
+    if (cfg.model) {
+      setProvider(shortProvider(cfg.model));
+      return;
+    }
     getProvider()
-      .then((p) => setProvider(p.available ? p.provider : 'nenhum provider configurado'))
+      .then((p) => setProvider(p.available ? shortProvider(p.provider) : 'sem provider'))
       .catch(() => setProvider(''));
   }, [open, provider]);
 
@@ -88,7 +126,8 @@ export function ChatWidget() {
     history.pop();
 
     try {
-      const res = await sendChat(text, history);
+      const cfg = loadAgentConfig();
+      const res = await sendChat(text, history, { model: cfg.model, apiKey: cfg.apiKey });
       if (res.ok) {
         setMessages((prev) => [
           ...prev,
@@ -149,13 +188,15 @@ export function ChatWidget() {
             position: 'fixed',
             bottom: 96,
             right: 24,
-            width: { xs: 'calc(100vw - 48px)', sm: 400 },
-            height: 560,
-            maxHeight: 'calc(100vh - 120px)',
+            top: { xs: 16, sm: 'auto' },
+            width: { xs: 'calc(100vw - 32px)', sm: 380 },
+            height: { xs: 'auto', sm: 'min(600px, calc(100vh - 180px))' },
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            borderRadius: 2,
+            borderRadius: 3,
+            border: (t) => `1px solid ${t.palette.divider}`,
+            boxShadow: (t) => t.customShadows?.z24 ?? t.shadows[24],
             zIndex: (t) => t.zIndex.speedDial,
             bgcolor: 'background.paper',
           }}
@@ -174,7 +215,7 @@ export function ChatWidget() {
             <Avatar sx={{ bgcolor: 'primary.dark', width: 36, height: 36 }}>
               <PetsIcon fontSize="small" />
             </Avatar>
-            <Box sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="subtitle2" noWrap>
                 Assistente VetFlow
               </Typography>
@@ -184,6 +225,16 @@ export function ChatWidget() {
                 </Typography>
               )}
             </Box>
+            <Tooltip title="Configurar">
+              <IconButton
+                size="small"
+                onClick={() => setSettingsOpen(true)}
+                sx={{ color: 'primary.contrastText' }}
+                aria-label="Configurar assistente"
+              >
+                <SettingsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
 
           {/* Mensagens */}
@@ -234,6 +285,12 @@ export function ChatWidget() {
           </Box>
         </Paper>
       </Fade>
+
+      <ChatSettings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onSaved={() => setProvider('')}
+      />
     </>
   );
 }
@@ -279,7 +336,11 @@ function MessageBubble({ message }: { message: UiMessage }) {
             wordBreak: 'break-word',
           }}
         >
-          <Typography variant="body2">{message.content}</Typography>
+          {isUser ? (
+            <Typography variant="body2">{message.content}</Typography>
+          ) : (
+            <MarkdownLite text={message.content} />
+          )}
         </Box>
       )}
     </Stack>
