@@ -42,6 +42,7 @@ cp .env.example .env
 | Variable                 | Required | Description                                                        |
 | ------------------------ | -------- | ------------------------------------------------------------------ |
 | `VITE_API_BASE_URL`      | Yes      | Backend server URL (e.g. `http://localhost:8080`)                  |
+| `VITE_AGENT_API_URL`     | For chat | AI assistant API URL (vetflow-agent, e.g. `http://localhost:8700`) |
 | `VITE_GOOGLE_CLIENT_ID`  | For SSO  | Google OAuth 2.0 client ID (Google Cloud Console)                  |
 | `VITE_FACEBOOK_APP_ID`   | Optional | Facebook OAuth app ID — placeholder for a future provider          |
 | `VITE_DISCORD_CLIENT_ID` | Optional | Discord OAuth client ID — placeholder for a future provider        |
@@ -76,6 +77,28 @@ Configured in `vite.config.ts`:
 - **Vitest** block: `globals: true`, `jsdom` environment, setup file
   `src/test/setup.ts`, test glob `src/**/*.{test,spec}.{ts,tsx}`. Test files live
   next to the code they cover.
+
+## AI Assistant widget
+
+A floating chat widget (`src/components/chat-widget/`) is mounted on the
+dashboard layout, so it appears on every authenticated screen. It lets users ask
+natural-language questions about the clinic ("how many pets does Maria have?")
+and the AI answers using **real data**, fetched through the
+[`vetflow-agent`](../vetflow-agent) API (which in turn calls the `vetflow-mcp`
+tools against the backend).
+
+- **Backend dependency:** the widget talks to the agent API at
+  `VITE_AGENT_API_URL` (default `http://localhost:8700`) — a service separate
+  from the main backend. It uses its own Axios client (`src/api/agentApi.ts`),
+  not the backend's.
+- **BYOK (bring your own key):** the gear (⚙️) opens a settings dialog where the
+  user picks a provider (OpenAI/Anthropic/Gemini), pastes their API key and
+  clicks **Validate** — the agent lists the real models that key can use and
+  populates the model dropdown. **The key is stored only in the browser's
+  `localStorage`**, never sent to the VetFlow backend; it travels only in the
+  `POST /chat` body to the agent. Leaving it blank uses the server's default
+  provider.
+- Responses render Markdown, and each tool the agent called is shown as a chip.
 
 ## Build & Deploy
 
