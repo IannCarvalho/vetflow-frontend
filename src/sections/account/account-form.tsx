@@ -23,13 +23,16 @@ export function AccountForm({ onUpdateSuccess, onNotify }: AccountFormProps) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset form data when user changes (e.g., logout/login)
+  // Reset form data when user changes (e.g., logout/login). Keyed on user?.id
+  // on purpose: re-seeding on every name/email keystroke would fight the user's
+  // own edits, so the identity change is the only trigger we want here.
   useEffect(() => {
     setFormData({
       name: user?.name || '',
       email: user?.email || '',
     });
     setSuccessDisabled(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const handleChange = useCallback(
@@ -49,7 +52,7 @@ export function AccountForm({ onUpdateSuccess, onNotify }: AccountFormProps) {
     [errors]
   );
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
@@ -64,7 +67,7 @@ export function AccountForm({ onUpdateSuccess, onNotify }: AccountFormProps) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -103,7 +106,7 @@ export function AccountForm({ onUpdateSuccess, onNotify }: AccountFormProps) {
         setLoading(false);
       }
     },
-    [formData, user, updateUser, onUpdateSuccess, onNotify]
+    [formData, updateUser, onUpdateSuccess, onNotify, validateForm]
   );
 
   const hasChanges = formData.name !== user?.name || formData.email !== user?.email;

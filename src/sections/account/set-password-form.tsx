@@ -43,7 +43,7 @@ export function SetPasswordForm({ onUpdateSuccess }: SetPasswordFormProps) {
     [errors]
   );
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.password.trim()) {
@@ -61,7 +61,7 @@ export function SetPasswordForm({ onUpdateSuccess }: SetPasswordFormProps) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -95,7 +95,7 @@ export function SetPasswordForm({ onUpdateSuccess }: SetPasswordFormProps) {
         setLoading(false);
       }
     },
-    [formData, onUpdateSuccess]
+    [formData, onUpdateSuccess, validateForm]
   );
 
   return (
