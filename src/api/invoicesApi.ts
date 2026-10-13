@@ -1,27 +1,29 @@
 /**
  * Invoices API
  *
- * Provides typed functions for invoice (financeiro) CRUD operations and filtering.
+ * Provides typed functions for invoice (financeiro) CRUD operations and
+ * filtering. The CRUD core is delegated to createEntityApi; only the by-client
+ * filter is hand-written here.
  */
 import axiosInstance from './axios';
+import { createEntityApi } from './createEntityApi';
 
 import type { Invoice } from '../types';
 
-/**
- * Fetch all invoices for the authenticated veterinarian
- */
-export const getInvoices = async (): Promise<Invoice[]> => {
-  const response = await axiosInstance.get<Invoice[]>('/invoices');
-  return response.data;
-};
+type CreateInvoiceInput = Omit<Invoice, 'id' | 'created_at' | 'updated_at'>;
 
-/**
- * Fetch a single invoice by ID
- */
-export const getInvoiceById = async (id: string): Promise<Invoice> => {
-  const response = await axiosInstance.get<Invoice>(`/invoices/${id}`);
-  return response.data;
-};
+const base = createEntityApi<Invoice, CreateInvoiceInput>('/invoices');
+
+/** Fetch all invoices for the authenticated veterinarian */
+export const getInvoices = base.getAll;
+/** Fetch a single invoice by ID */
+export const getInvoiceById = base.getById;
+/** Create a new invoice */
+export const createInvoice = base.create;
+/** Update an existing invoice */
+export const updateInvoice = base.update;
+/** Delete an invoice */
+export const deleteInvoice = base.remove;
 
 /**
  * Fetch all invoices for a specific client
@@ -31,29 +33,4 @@ export const getInvoicesByClientId = async (clientId: string): Promise<Invoice[]
     params: { client_id: clientId },
   });
   return response.data;
-};
-
-type CreateInvoiceInput = Omit<Invoice, 'id' | 'created_at' | 'updated_at'>;
-
-/**
- * Create a new invoice
- */
-export const createInvoice = async (data: CreateInvoiceInput): Promise<Invoice> => {
-  const response = await axiosInstance.post<Invoice>('/invoices', data);
-  return response.data;
-};
-
-/**
- * Update an existing invoice
- */
-export const updateInvoice = async (id: string, data: Partial<Invoice>): Promise<Invoice> => {
-  const response = await axiosInstance.put<Invoice>(`/invoices/${id}`, data);
-  return response.data;
-};
-
-/**
- * Delete an invoice
- */
-export const deleteInvoice = async (id: string): Promise<void> => {
-  await axiosInstance.delete(`/invoices/${id}`);
 };
