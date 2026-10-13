@@ -2,48 +2,23 @@
  * Clients API
  *
  * Provides typed functions for client (pet owner) CRUD operations.
+ * The CRUD core is delegated to createEntityApi.
  */
-import axiosInstance from './axios';
+import { createEntityApi } from './createEntityApi';
 
 import type { Client } from '../types';
 
-/**
- * Fetch all clients
- */
-export const getClients = async (): Promise<Client[]> => {
-  const response = await axiosInstance.get<Client[]>('/clients');
-  return response.data;
-};
+type CreateClientInput = Omit<Client, 'id' | 'created_at' | 'updated_at'>;
 
-/**
- * Fetch a single client by ID
- */
-export const getClientById = async (id: string): Promise<Client> => {
-  const response = await axiosInstance.get<Client>(`/clients/${id}`);
-  return response.data;
-};
+const base = createEntityApi<Client, CreateClientInput>('/clients');
 
-/**
- * Create a new client
- */
-export const createClient = async (
-  data: Omit<Client, 'id' | 'created_at' | 'updated_at'>
-): Promise<Client> => {
-  const response = await axiosInstance.post<Client>('/clients', data);
-  return response.data;
-};
-
-/**
- * Update an existing client
- */
-export const updateClient = async (id: string, data: Partial<Client>): Promise<Client> => {
-  const response = await axiosInstance.put<Client>(`/clients/${id}`, data);
-  return response.data;
-};
-
-/**
- * Delete a client
- */
-export const deleteClient = async (id: string): Promise<void> => {
-  await axiosInstance.delete(`/clients/${id}`);
-};
+/** Fetch all clients */
+export const getClients = base.getAll;
+/** Fetch a single client by ID */
+export const getClientById = base.getById;
+/** Create a new client */
+export const createClient = base.create;
+/** Update an existing client */
+export const updateClient = base.update;
+/** Delete a client */
+export const deleteClient = base.remove;
