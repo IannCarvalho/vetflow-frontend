@@ -142,6 +142,73 @@ Deployment targets **Vercel** via `vercel.json`:
 Each source folder has its own README describing that layer. Start here and drill
 into whichever concern you are navigating:
 
+```mermaid
+flowchart TD
+    user(["User (browser)"])
+
+    subgraph boot["Bootstrap"]
+        main["main.tsx<br/>mount · providers"]
+        app["app.tsx<br/>root component"]
+    end
+
+    subgraph routing["Routing & shell"]
+        routes["routes/<br/>route tree · ProtectedRoute"]
+        layouts["layouts/<br/>dashboard · auth shells + nav"]
+    end
+
+    subgraph view["View layer"]
+        pages["pages/<br/>one component per route"]
+        sections["sections/<br/>feature groups (clients, pets, …)"]
+        components["components/<br/>shared reusable UI"]
+    end
+
+    subgraph data["Data layer"]
+        hooks["hooks/<br/>React Query (fetch · mutate)"]
+        api["api/<br/>Axios client · per-resource fns"]
+    end
+
+    subgraph cross["Cross-cutting"]
+        auth["contexts/<br/>auth-context (JWT)"]
+        types["types/<br/>shared TS contracts"]
+        theme["theme/<br/>MUI theme · pt-BR locale"]
+        utils["utils/<br/>masks · formatting · ViaCEP · api-error"]
+    end
+
+    backend["vetflow-backend<br/>(REST · VITE_API_BASE_URL)"]
+    agent["vetflow-agent<br/>(chat · VITE_AGENT_API_URL)"]
+
+    user --> main --> app --> routes
+    routes --> layouts --> pages
+    pages --> sections
+    pages --> components
+    sections --> components
+    sections --> hooks
+    hooks --> api
+    api -->|"REST + Bearer JWT"| backend
+
+    routes -. "guards with" .-> auth
+    auth -. "token on" .-> api
+    api -. "normalizes errors via" .-> utils
+    hooks -. "typed by" .-> types
+    layouts -. "styled by" .-> theme
+
+    components -. "chat widget<br/>POST /chat (+ BYOK key)" .-> agent
+
+    classDef js fill:#b7791f,stroke:#744210,color:#fff;
+    classDef ext fill:#2f855a,stroke:#1c4532,color:#fff;
+    classDef actor fill:#2b6cb0,stroke:#1a365d,color:#fff;
+    class main,app,routes,layouts,pages,sections,components,hooks,api,auth,types,theme,utils js;
+    class backend,agent ext;
+    class user actor;
+```
+
+Data flows **down** the view layer and **out** through the data layer: `pages`
+compose `sections`/`components`, which read and write via React Query `hooks`,
+which call the typed `api` functions — the only layer that talks HTTP. UI never
+calls Axios directly, and nothing below `pages` knows about routing. `theme`,
+`types`, `utils` and the auth `contexts` are cross-cutting concerns the other
+layers lean on.
+
 | Folder                                        | What lives there                                                        |
 | --------------------------------------------- | ----------------------------------------------------------------------- |
 | [`src/api/`](src/api/README.md)               | Axios instance and typed, per-resource API functions                    |
