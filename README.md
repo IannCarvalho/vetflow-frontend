@@ -10,8 +10,8 @@ Built with **React 19**, **TypeScript**, **Vite 6**, **Material-UI 7**,
 **React Router v7**, **React Query (@tanstack/react-query)**, **React Hook Form +
 Yup**, and **Axios**. Tested with **Vitest + Testing Library**.
 
-> Part of the [VetFlow monorepo](../README.md). The companion API lives in
-> [`vetflow-backend`](../vetflow-backend/README.md).
+> Part of the [VetFlow monorepo](https://github.com/IannCarvalho/vetflow). The companion API lives in
+> [`vetflow-backend`](https://github.com/IannCarvalho/vetflow-backend).
 
 ## Language Convention
 
@@ -84,7 +84,7 @@ A floating chat widget (`src/components/chat-widget/`) is mounted on the
 dashboard layout, so it appears on every authenticated screen. It lets users ask
 natural-language questions about the clinic ("how many pets does Maria have?")
 and the AI answers using **real data**, fetched through the
-[`vetflow-agent`](../vetflow-agent) API (which in turn calls the `vetflow-mcp`
+[`vetflow-agent`](https://github.com/IannCarvalho/vetflow-agent) API (which in turn calls the `vetflow-mcp`
 tools against the backend).
 
 ```mermaid
@@ -116,7 +116,7 @@ flowchart LR
 
 > **Note — no LiteLLM here.** This frontend is React/TypeScript and never
 > imports `litellm`; the LLM lives entirely in the
-> [`vetflow-agent`](../vetflow-agent) service. The agent's import-ordering rule
+> [`vetflow-agent`](https://github.com/IannCarvalho/vetflow-agent) service. The agent's import-ordering rule
 > (import `litellm` right after reading the env, and at module top-level, because
 > LiteLLM reads environment variables at **import time**) is documented in the
 > agent's README and does **not** apply to this repo. Cross-referenced here only
