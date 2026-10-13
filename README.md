@@ -114,6 +114,14 @@ flowchart LR
   provider.
 - Responses render Markdown, and each tool the agent called is shown as a chip.
 
+> **Note — no LiteLLM here.** This frontend is React/TypeScript and never
+> imports `litellm`; the LLM lives entirely in the
+> [`vetflow-agent`](../vetflow-agent) service. The agent's import-ordering rule
+> (import `litellm` right after reading the env, and at module top-level, because
+> LiteLLM reads environment variables at **import time**) is documented in the
+> agent's README and does **not** apply to this repo. Cross-referenced here only
+> so the detail isn't searched for in the wrong place.
+
 ## Build & Deploy
 
 ```bash
