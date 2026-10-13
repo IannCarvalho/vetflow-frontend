@@ -37,8 +37,3 @@ export async function login(data: LoginData): Promise<AuthResponse> {
   const response = await api.post<AuthResponse>('/auth/login', data);
   return response.data;
 }
-
-export async function verifyToken(token: string): Promise<{ message: string }> {
-  const response = await api.get(`/auth/verify/${token}`);
-  return response.data;
-}
