@@ -16,6 +16,7 @@ import { useRouter } from 'src/routes/hooks';
 import { getApiErrorMessage } from 'src/utils/api-error';
 
 import { useAuth } from 'src/contexts/auth-context';
+import { isDemoMode, DEMO_VISITOR_EMAIL, DEMO_VISITOR_PASSWORD } from 'src/config/demo';
 
 import { Iconify } from 'src/components/iconify';
 import { SocialLoginButtons } from 'src/components/social-login/social-login-button';
@@ -57,6 +58,20 @@ export function SignInView() {
       setLoading(false);
     }
   }, [email, password, login, router]);
+
+  const handleVisitorLogin = useCallback(async () => {
+    try {
+      setLoginError('');
+      setLoading(true);
+      await login(DEMO_VISITOR_EMAIL, DEMO_VISITOR_PASSWORD);
+      router.push('/');
+    } catch (error) {
+      console.error('Erro ao entrar como visitante:', error);
+      setLoginError(getApiErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }, [login, router]);
 
   const handleSignUp = useCallback(
     async (data: { email: string; password: string; name: string }) => {
@@ -143,6 +158,22 @@ export function SignInView() {
       >
         {loading ? 'Entrando...' : 'Entrar'}
       </Button>
+
+      {isDemoMode && (
+        <Button
+          fullWidth
+          size="large"
+          type="button"
+          color="primary"
+          variant="outlined"
+          onClick={handleVisitorLogin}
+          disabled={loading}
+          startIcon={<Iconify icon="solar:eye-bold" />}
+          sx={{ mt: 1.5 }}
+        >
+          Entrar como visitante
+        </Button>
+      )}
     </Box>
   );
 
