@@ -100,6 +100,14 @@ export function SignInView() {
 
   const renderForm = (
     <Box
+      component="form"
+      onSubmit={(e) => {
+        // Prevent the browser's native form submit (full page reload), which
+        // would wipe the error message before the user can read it. Submitting
+        // with Enter now runs the controlled handler instead.
+        e.preventDefault();
+        if (!loading) handleSignIn();
+      }}
       sx={{
         display: 'flex',
         alignItems: 'flex-end',
@@ -153,10 +161,9 @@ export function SignInView() {
       <Button
         fullWidth
         size="large"
-        type="button"
+        type="submit"
         color="inherit"
         variant="contained"
-        onClick={handleSignIn}
         disabled={loading}
       >
         {loading ? 'Entrando...' : 'Entrar'}
