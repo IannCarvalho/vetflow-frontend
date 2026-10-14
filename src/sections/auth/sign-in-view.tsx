@@ -99,21 +99,25 @@ export function SignInView() {
   );
 
   const renderForm = (
-    <Box
-      component="form"
+    // Native <form> element: MUI's Box component="form" does not reliably
+    // attach onSubmit as the DOM form's native handler on MUI v7, so pressing
+    // Enter triggered a native submit (full page reload) that wiped the error
+    // message before the user could read it. A real <form> guarantees the
+    // controlled handler runs and the native submit is prevented. The inner
+    // <Box> keeps the flex-column layout.
+    <form
       onSubmit={(e) => {
-        // Prevent the browser's native form submit (full page reload), which
-        // would wipe the error message before the user can read it. Submitting
-        // with Enter now runs the controlled handler instead.
         e.preventDefault();
         if (!loading) handleSignIn();
       }}
-      sx={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        flexDirection: 'column',
-      }}
     >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          flexDirection: 'column',
+        }}
+      >
       {loginError && (
         <Alert severity="error" sx={{ width: '100%', mb: 2 }} onClose={() => setLoginError('')}>
           {loginError}
@@ -184,7 +188,8 @@ export function SignInView() {
           Entrar como visitante
         </Button>
       )}
-    </Box>
+      </Box>
+    </form>
   );
 
   return (
