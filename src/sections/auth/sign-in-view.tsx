@@ -74,7 +74,7 @@ export function SignInView() {
   }, [login, router]);
 
   const handleSignUp = useCallback(
-    async (data: { email: string; password: string; name: string }) => {
+    async (data: { email: string; password: string; name: string; inviteCode?: string }) => {
       try {
         setSignUpLoading(true);
         await register({
@@ -82,6 +82,7 @@ export function SignInView() {
           email: data.email,
           password: data.password,
           confirm_password: data.password,
+          invite_code: data.inviteCode,
         });
         setOpenSignUp(false);
         router.push('/');
@@ -222,6 +223,7 @@ export function SignInView() {
         onClose={() => setOpenSignUp(false)}
         onSubmit={handleSignUp}
         loading={signUpLoading}
+        requireInvite={!isDemoMode}
       />
     </>
   );

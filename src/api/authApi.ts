@@ -20,6 +20,8 @@ export interface RegisterData {
   email: string;
   password: string;
   confirm_password: string;
+  /** Required only in production (closed signup). Ignored by the demo backend. */
+  invite_code?: string;
 }
 
 export interface LoginData {

@@ -21,17 +21,31 @@ import { Iconify } from 'src/components/iconify';
 interface SignUpModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: { email: string; password: string; name: string }) => void | Promise<void>;
+  onSubmit: (data: {
+    email: string;
+    password: string;
+    name: string;
+    inviteCode?: string;
+  }) => void | Promise<void>;
   loading?: boolean;
+  /** When true, show and require an invite code field (closed production signup). */
+  requireInvite?: boolean;
 }
 
-export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUpModalProps) {
+export function SignUpModal({
+  open,
+  onClose,
+  onSubmit,
+  loading = false,
+  requireInvite = false,
+}: SignUpModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
+    inviteCode: '',
   });
   const [error, setError] = useState('');
 
@@ -71,11 +85,17 @@ export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUp
       return;
     }
 
+    if (requireInvite && !formData.inviteCode.trim()) {
+      setError('Código de convite é obrigatório');
+      return;
+    }
+
     try {
       await onSubmit({
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        inviteCode: requireInvite ? formData.inviteCode.trim() : undefined,
       });
 
       // Limpar formulário somente após sucesso
@@ -84,11 +104,12 @@ export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUp
         email: '',
         password: '',
         confirmPassword: '',
+        inviteCode: '',
       });
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
-  }, [formData, onSubmit]);
+  }, [formData, onSubmit, requireInvite]);
 
   const handleClose = useCallback(() => {
     setFormData({
@@ -96,6 +117,7 @@ export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUp
       email: '',
       password: '',
       confirmPassword: '',
+      inviteCode: '',
     });
     setError('');
     onClose();
@@ -185,6 +207,19 @@ export function SignUpModal({ open, onClose, onSubmit, loading = false }: SignUp
               },
             }}
           />
+
+          {requireInvite && (
+            <TextField
+              fullWidth
+              name="inviteCode"
+              label="Código de convite"
+              value={formData.inviteCode}
+              onChange={handleChange}
+              placeholder="Informe o código recebido"
+              disabled={loading}
+              helperText="O cadastro é restrito. Use o código de convite fornecido."
+            />
+          )}
         </Box>
       </DialogContent>
 
