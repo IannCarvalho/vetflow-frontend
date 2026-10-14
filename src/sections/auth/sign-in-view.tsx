@@ -84,10 +84,12 @@ export function SignInView() {
           confirm_password: data.password,
           invite_code: data.inviteCode,
         });
-        setOpenSignUp(false);
+        // Success: the modal closes itself (via onClose). Navigate home.
         router.push('/');
       } catch (error) {
         console.error('Erro ao registrar:', error);
+        // Re-throw so the modal catches it and shows the message WITHOUT
+        // closing. The modal only closes on success.
         throw error;
       } finally {
         setSignUpLoading(false);

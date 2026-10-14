@@ -98,7 +98,8 @@ export function SignUpModal({
         inviteCode: requireInvite ? formData.inviteCode.trim() : undefined,
       });
 
-      // Limpar formulário somente após sucesso
+      // Success only: clear the form and close the modal. On error we fall
+      // into catch below, so the modal stays open with the error visible.
       setFormData({
         name: '',
         email: '',
@@ -106,10 +107,11 @@ export function SignUpModal({
         confirmPassword: '',
         inviteCode: '',
       });
+      onClose();
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
-  }, [formData, onSubmit, requireInvite]);
+  }, [formData, onSubmit, onClose, requireInvite]);
 
   const handleClose = useCallback(() => {
     setFormData({
