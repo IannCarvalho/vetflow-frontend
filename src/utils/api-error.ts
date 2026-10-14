@@ -37,6 +37,17 @@ export function getApiErrorMessage(error: unknown, fallback = 'Ocorreu um erro i
       return 'Muitas tentativas. Aguarde um momento e tente novamente.';
     }
 
+    // Invite-only signup (production). The backend returns:
+    //   401 { error: "invalid invite code" }  -> wrong/missing code
+    //   403 { error: "registration is closed" } -> no invite code configured
+    // Translate both to friendly pt-BR instead of leaking the raw English.
+    if (body?.error === 'invalid invite code') {
+      return 'Código de convite inválido. Verifique o código e tente novamente.';
+    }
+    if (body?.error === 'registration is closed') {
+      return 'O cadastro está fechado no momento.';
+    }
+
     // Duplicate email on sign-up.
     if (error.response?.status === 409) {
       return body?.error ?? 'Este e-mail já está cadastrado.';
