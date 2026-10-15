@@ -57,12 +57,24 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// The auth endpoints answer 401 for WRONG CREDENTIALS (login) or an INVALID
+// INVITE CODE (register). That is a form error the screen shows inline, not an
+// expired session: redirecting here does a full page reload
+// (window.location.href) that wipes the error message, and closes the sign-up
+// modal, before the user can read it.
+const CREDENTIAL_ENDPOINTS = ['/auth/login', '/auth/register'];
+
+function isCredentialRequest(url?: string): boolean {
+  return !!url && CREDENTIAL_ENDPOINTS.some((endpoint) => url.endsWith(endpoint));
+}
+
 // Add response interceptor for error handling
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 - Unauthorized
-    if (error.response?.status === 401) {
+    // 401 on any other endpoint = expired/invalid session: drop it and go
+    // back to sign-in.
+    if (error.response?.status === 401 && !isCredentialRequest(error.config?.url)) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       window.location.href = '/sign-in';
