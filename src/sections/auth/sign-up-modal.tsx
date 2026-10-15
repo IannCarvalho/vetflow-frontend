@@ -131,108 +131,125 @@ export function SignUpModal({
         <Typography variant="h6">Criar Nova Conta</Typography>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {error && (
-            <Alert severity="error" onClose={() => setError('')}>
-              {error}
-            </Alert>
-          )}
-          <TextField
-            autoFocus
-            fullWidth
-            name="name"
-            label="Nome completo"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Ex: João Silva"
-            disabled={loading}
-          />
+      {/*
+        Native <form>, same approach as the sign-in screen: Enter in any field
+        submits through handleSubmit, and preventDefault keeps it a SPA submit
+        (no native navigation). Before this, the fields sat outside any form,
+        so Enter did nothing. noValidate keeps the pt-BR validation messages
+        below instead of the browser's native bubbles. The flex styles keep the
+        Dialog layout (scrollable content, actions pinned at the bottom).
+      */}
+      <form
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!loading) handleSubmit();
+        }}
+        style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}
+      >
+        <DialogContent sx={{ pt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {error && (
+              <Alert severity="error" onClose={() => setError('')}>
+                {error}
+              </Alert>
+            )}
+            <TextField
+              autoFocus
+              fullWidth
+              name="name"
+              label="Nome completo"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Ex: João Silva"
+              disabled={loading}
+            />
 
-          <TextField
-            fullWidth
-            name="email"
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="seu@email.com"
-            disabled={loading}
-          />
-
-          <TextField
-            fullWidth
-            name="password"
-            label="Senha"
-            type={showPassword ? 'text' : 'password'}
-            value={formData.password}
-            onChange={handleChange}
-            disabled={loading}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      disabled={loading}
-                    >
-                      <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            name="confirmPassword"
-            label="Confirmar Senha"
-            type={showPassword ? 'text' : 'password'}
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            disabled={loading}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      disabled={loading}
-                    >
-                      <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          {requireInvite && (
             <TextField
               fullWidth
-              name="inviteCode"
-              label="Código de convite"
-              value={formData.inviteCode}
+              name="email"
+              label="Email"
+              type="email"
+              value={formData.email}
               onChange={handleChange}
-              placeholder="Informe o código recebido"
+              placeholder="seu@email.com"
               disabled={loading}
-              helperText="O cadastro é restrito. Use o código de convite fornecido."
             />
-          )}
-        </Box>
-      </DialogContent>
 
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={loading}>
-          {loading ? 'Criando...' : 'Criar Conta'}
-        </Button>
-      </DialogActions>
+            <TextField
+              fullWidth
+              name="password"
+              label="Senha"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleChange}
+              disabled={loading}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        disabled={loading}
+                      >
+                        <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              name="confirmPassword"
+              label="Confirmar Senha"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              disabled={loading}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        disabled={loading}
+                      >
+                        <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+
+            {requireInvite && (
+              <TextField
+                fullWidth
+                name="inviteCode"
+                label="Código de convite"
+                value={formData.inviteCode}
+                onChange={handleChange}
+                placeholder="Informe o código recebido"
+                disabled={loading}
+                helperText="O cadastro é restrito. Use o código de convite fornecido."
+              />
+            )}
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button type="button" onClick={handleClose} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="contained" disabled={loading}>
+            {loading ? 'Criando...' : 'Criar Conta'}
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 }

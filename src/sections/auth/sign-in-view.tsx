@@ -99,12 +99,11 @@ export function SignInView() {
   );
 
   const renderForm = (
-    // Native <form> element: MUI's Box component="form" does not reliably
-    // attach onSubmit as the DOM form's native handler on MUI v7, so pressing
-    // Enter triggered a native submit (full page reload) that wiped the error
-    // message before the user could read it. A real <form> guarantees the
-    // controlled handler runs and the native submit is prevented. The inner
-    // <Box> keeps the flex-column layout.
+    // Native <form>: Enter submits through the controlled handler and
+    // preventDefault keeps it a SPA submit (no native navigation). The full
+    // page reload that used to wipe the error after a failed login came from
+    // the global 401 interceptor (see src/api/axios.ts), not from this form.
+    // The inner <Box> keeps the flex-column layout.
     <form
       onSubmit={(e) => {
         e.preventDefault();
