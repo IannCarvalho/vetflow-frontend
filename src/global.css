@@ -1,6 +1,13 @@
 /** **************************************
 * Fonts: app
 *************************************** */
+/* Primary UI font (theme-config fontFamily.primary = 'DM Sans Variable').
+   The variable face carries every weight the typography scale uses (400/500/600/700). */
+@import '@fontsource-variable/dm-sans/index.css';
+/* Secondary display font (theme-config fontFamily.secondary = 'Barlow'),
+   used by h1-h3 and the heroDisplay preset at 700/800 only. */
+@import '@fontsource/barlow/700.css';
+@import '@fontsource/barlow/800.css';
 
 /** **************************************
 * Plugins

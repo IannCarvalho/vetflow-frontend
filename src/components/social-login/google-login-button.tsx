@@ -5,6 +5,9 @@ import { Tooltip, IconButton } from '@mui/material';
 
 import { Iconify } from 'src/components/iconify';
 
+/** Google sign-in is available only when a real OAuth client id is configured. */
+export const isGoogleConfigured = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+
 interface GoogleLoginButtonProps {
   onSuccess: (provider: string, token: string, userData: any) => void;
 }

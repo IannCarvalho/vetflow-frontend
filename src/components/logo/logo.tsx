@@ -24,7 +24,7 @@ export function Logo({
 }: LogoProps) {
   return (
     <LogoRoot
-      aria-label="Logo"
+      aria-label="VetFlow — página inicial"
       underline="none"
       className={mergeClasses([logoClasses.root, className])}
       sx={[
@@ -42,15 +42,11 @@ export function Logo({
       ]}
       {...other}
     >
-      <img
-        src="/logo.png"
-        alt="VetFlow"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-        }}
-      />
+      {/* Scheme-aware brand mark. The light logo keeps its navy "Vet"; the dark
+          variant lightens the navy so it stays legible on the dark nav
+          (#141A21). CSS toggles the two by colour scheme — no JS, no flash. */}
+      <LogoImg data-scheme="light" src="/logo.png" alt="VetFlow" draggable={false} />
+      <LogoImg data-scheme="dark" src="/logo-dark.png" alt="VetFlow" draggable={false} />
     </LogoRoot>
   );
 }
@@ -61,4 +57,16 @@ const LogoRoot = styled(Link)(() => ({
   flexShrink: 0,
   display: 'inline-flex',
   verticalAlign: 'middle',
+}));
+
+const LogoImg = styled('img')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  objectFit: 'contain',
+  // Light scheme (default): show the light logo, hide the dark one.
+  '&[data-scheme="dark"]': { display: 'none' },
+  ...theme.applyStyles('dark', {
+    '&[data-scheme="light"]': { display: 'none' },
+    '&[data-scheme="dark"]': { display: 'inline-block' },
+  }),
 }));

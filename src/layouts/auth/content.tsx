@@ -4,6 +4,8 @@ import { mergeClasses } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 
+import { Logo } from 'src/components/logo';
+
 import { layoutClasses } from '../core/classes';
 
 // ----------------------------------------------------------------------
@@ -25,11 +27,17 @@ export function AuthContent({ sx, children, className, ...other }: AuthContentPr
           flexDirection: 'column',
           maxWidth: 'var(--layout-auth-content-width)',
           bgcolor: theme.vars.palette.background.default,
+          boxShadow: theme.vars.customShadows.card,
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
       {...other}
     >
+      {/* Brand mark at the top of the auth card so the sign-in screen carries
+          the VetFlow identity (was blank on main). Scheme-aware via Logo. */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+        <Logo sx={{ width: 160, mb: 0 }} />
+      </Box>
       {children}
     </Box>
   );

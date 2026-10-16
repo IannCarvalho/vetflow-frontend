@@ -4,6 +4,9 @@ import { Tooltip, IconButton } from '@mui/material';
 
 import { Iconify } from 'src/components/iconify';
 
+/** Facebook sign-in is available only when a real OAuth app id is configured. */
+export const isFacebookConfigured = Boolean(import.meta.env.VITE_FACEBOOK_APP_ID);
+
 export function FacebookLoginButton() {
   const handleFacebookLogin = useCallback(() => {
     const clientID = import.meta.env.VITE_FACEBOOK_APP_ID;

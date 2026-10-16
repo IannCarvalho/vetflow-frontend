@@ -19,7 +19,10 @@ import { useAuth } from 'src/contexts/auth-context';
 import { isDemoMode, DEMO_VISITOR_EMAIL, DEMO_VISITOR_PASSWORD } from 'src/config/demo';
 
 import { Iconify } from 'src/components/iconify';
-import { SocialLoginButtons } from 'src/components/social-login/social-login-button';
+import {
+  SocialLoginButtons,
+  hasConfiguredSocialLogin,
+} from 'src/components/social-login/social-login-button';
 
 import { SignUpModal } from './sign-up-modal';
 
@@ -117,76 +120,80 @@ export function SignInView() {
           flexDirection: 'column',
         }}
       >
-      {loginError && (
-        <Alert severity="error" sx={{ width: '100%', mb: 2 }} onClose={() => setLoginError('')}>
-          {loginError}
-        </Alert>
-      )}
-      <TextField
-        fullWidth
-        name="email"
-        label="Endereço de email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        inputProps={{
-          autoCapitalize: 'none',
-          autoCorrect: 'off',
-          spellCheck: false,
-          inputMode: 'email',
-        }}
-        sx={{ mb: 3 }}
-      />
+        {loginError && (
+          <Alert severity="error" sx={{ width: '100%', mb: 2 }} onClose={() => setLoginError('')}>
+            {loginError}
+          </Alert>
+        )}
+        <TextField
+          fullWidth
+          name="email"
+          label="Endereço de email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          inputProps={{
+            autoCapitalize: 'none',
+            autoCorrect: 'off',
+            spellCheck: false,
+            inputMode: 'email',
+          }}
+          sx={{ mb: 3 }}
+        />
 
-      <Link variant="body2" color="inherit" sx={{ mb: 1.5 }}>
-        Esqueceu a senha?
-      </Link>
+        <Link variant="body2" color="inherit" sx={{ mb: 1.5 }}>
+          Esqueceu a senha?
+        </Link>
 
-      <TextField
-        fullWidth
-        name="password"
-        label="Senha"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        type={showPassword ? 'text' : 'password'}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 3 }}
-      />
+        <TextField
+          fullWidth
+          name="password"
+          label="Senha"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          type={showPassword ? 'text' : 'password'}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  edge="end"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 3 }}
+        />
 
-      <Button
-        fullWidth
-        size="large"
-        type="submit"
-        color="inherit"
-        variant="contained"
-        disabled={loading}
-      >
-        {loading ? 'Entrando...' : 'Entrar'}
-      </Button>
-
-      {isDemoMode && (
         <Button
           fullWidth
           size="large"
-          type="button"
+          type="submit"
           color="primary"
-          variant="outlined"
-          onClick={handleVisitorLogin}
+          variant="contained"
           disabled={loading}
-          startIcon={<Iconify icon="solar:eye-bold" />}
-          sx={{ mt: 1.5 }}
         >
-          Entrar como visitante
+          {loading ? 'Entrando...' : 'Entrar'}
         </Button>
-      )}
+
+        {isDemoMode && (
+          <Button
+            fullWidth
+            size="large"
+            type="button"
+            color="inherit"
+            variant="outlined"
+            onClick={handleVisitorLogin}
+            disabled={loading}
+            startIcon={<Iconify icon="solar:eye-bold" />}
+            sx={{ mt: 1.5 }}
+          >
+            Entrar como visitante
+          </Button>
+        )}
       </Box>
     </form>
   );
@@ -221,15 +228,19 @@ export function SignInView() {
         </Typography>
       </Box>
       {renderForm}
-      <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
-        <Typography
-          variant="overline"
-          sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
-        >
-          OU
-        </Typography>
-      </Divider>
-      <SocialLoginButtons onSuccess={() => router.push('/')} />
+      {hasConfiguredSocialLogin && (
+        <>
+          <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
+            <Typography
+              variant="overline"
+              sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
+            >
+              OU
+            </Typography>
+          </Divider>
+          <SocialLoginButtons onSuccess={() => router.push('/')} />
+        </>
+      )}
 
       <SignUpModal
         open={openSignUp}
