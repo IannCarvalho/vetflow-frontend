@@ -15,7 +15,7 @@ Componentes de domínio específicos de um recurso — principalmente diálogos 
 | Pasta | Conteúdo |
 | --- | --- |
 | `auth/` | `sign-in-view`, `sign-up-modal`. |
-| `account/` | Formulário de conta, troca/definição de senha, foto de perfil. |
+| `account/` | Formulário de conta, troca de senha, foto de perfil. |
 | `clients/` | Diálogo de cliente. |
 | `pets/` | Diálogo de pet. |
 | `appointments/` | Diálogo e constantes de agendamento. |
