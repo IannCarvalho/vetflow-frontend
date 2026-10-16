@@ -15,6 +15,8 @@ Clientes HTTP que falam com o backend VetFlow. Cada arquivo expõe funções tip
 | Arquivo | Papel |
 | --- | --- |
 | `axios.ts` | Instância base do Axios + interceptors (token JWT, tratamento de 401). |
+| `createEntityApi.ts` | Fábrica genérica de funções CRUD (`getAll`/`getById`/`create`/`update`/`remove`) reusada pelos módulos de recurso. |
+| `agentApi.ts` | Cliente HTTP do Assistente VetFlow (vetflow-agent), separado do backend — não injeta o JWT nem redireciona no 401. |
 | `authApi.ts` | Login, logout, refresh e fluxo de autenticação. |
 | `usersApi.ts` | Perfil, senha e dados do usuário logado. |
 | `clientsApi.ts` | CRUD de clientes (tutores). |
