@@ -10,8 +10,16 @@ Built with **React 19**, **TypeScript**, **Vite 6**, **Material-UI 7**,
 **React Router v7**, **React Query (@tanstack/react-query)**, **React Hook Form +
 Yup**, and **Axios**. Tested with **Vitest + Testing Library**.
 
-> Part of the [VetFlow monorepo](https://github.com/IannCarvalho/vetflow). The companion API lives in
-> [`vetflow-backend`](https://github.com/IannCarvalho/vetflow-backend).
+> Part of [VetFlow](https://github.com/IannCarvalho/vetflow) — an umbrella repo
+> that **maps four independent repositories** (not a monorepo): this frontend,
+> the [`vetflow-backend`](https://github.com/IannCarvalho/vetflow-backend) API,
+> the [`vetflow-agent`](https://github.com/IannCarvalho/vetflow-agent) chat
+> service and the [`vetflow-mcp`](https://github.com/IannCarvalho/vetflow-mcp)
+> tools. Each is deployed and versioned on its own.
+
+**Live demo:** [vetflow-frontend-demo.vercel.app](https://vetflow-frontend-demo.vercel.app)
+— runs in demo mode; use the **"Entrar como visitante"** button to sign in as a
+read-only visitor.
 
 ## Language Convention
 
@@ -43,6 +51,7 @@ cp .env.example .env
 | ------------------------ | -------- | ------------------------------------------------------------------ |
 | `VITE_API_BASE_URL`      | Yes      | Backend server URL (e.g. `http://localhost:8080`)                  |
 | `VITE_AGENT_API_URL`     | For chat | AI assistant API URL (vetflow-agent, e.g. `http://localhost:8700`) |
+| `VITE_DEMO_MODE`         | Optional | Set to `true` only for the public demo: shows an "Entrar como visitante" button on sign-in that logs in with the seeded demo account. Requires `VITE_API_BASE_URL` to point at a demo backend. Leave unset/`false` for production. |
 | `VITE_GOOGLE_CLIENT_ID`  | For SSO  | Google OAuth 2.0 client ID (Google Cloud Console)                  |
 | `VITE_FACEBOOK_APP_ID`   | Optional | Facebook OAuth app ID — placeholder for a future provider          |
 | `VITE_DISCORD_CLIENT_ID` | Optional | Discord OAuth client ID — placeholder for a future provider        |
@@ -59,6 +68,7 @@ Defined in `package.json`:
 | `npm run build`     | `tsc && vite build`| Type-check, then build to `dist/`                  |
 | `npm run start`     | `vite preview`     | Preview the production build locally               |
 | `npm test`          | `vitest run`       | Run the test suite once                            |
+| `npm run test:a11y` | `playwright test`  | Run the accessibility (axe-core) checks            |
 | `npm run lint`      | `eslint ...`       | Lint `src/**/*.{js,jsx,ts,tsx}`                    |
 | `npm run lint:fix`  | `eslint --fix ...` | Lint and auto-fix                                  |
 | `npm run fm:check`  | `prettier --check` | Check formatting                                   |
@@ -136,6 +146,22 @@ Deployment targets **Vercel** via `vercel.json`:
 - `framework`: `vite`
 - SPA rewrite: every non-asset path falls through to `/index.html` so client-side
   routing works on deep links.
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs on every push to `main`/`master` and on every
+pull request, as three sequential jobs:
+
+1. **Reject merge conflict markers** (`no-conflict-markers`) — fails the build if
+   any tracked file still contains `<<<<<<<`, `=======` or `>>>>>>>`. The same
+   check runs locally via the `pre-commit` hook (see
+   [Git Hooks](#git-hooks--merge-conflict-marker-gate)).
+2. **Typecheck, build & test** (`build-test`, Node 20) — `npx tsc --noEmit`,
+   `npx vite build` and `npx vitest run`.
+3. **Accessibility gate (axe-core)** (`a11y`, Node 20) — installs Playwright
+   Chromium and runs `npm run test:a11y`, which boots a `vite preview` of the
+   build and audits the rendered pages with axe-core. This job finishes last
+   (it waits on the preview deploy), so a "pending" status here is not a failure.
 
 ## Source structure
 

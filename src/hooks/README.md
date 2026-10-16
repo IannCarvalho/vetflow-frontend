@@ -25,6 +25,9 @@ Hooks que encapsulam o acesso a dados via [TanStack React Query](https://tanstac
 | `useInvoicesQuery.ts` | Faturas / financeiro. |
 | `useDashboardQuery.ts` | Métricas do dashboard. |
 | `useNotificationsQuery.ts` | Notificações (com polling). |
+| `createEntityHooks.ts` | Fábrica genérica de hooks CRUD React Query (`useGetAll`/`useGetById`/`useCreate`/`useUpdate`/`useDelete`) com chaves de cache e invalidação — base dos hooks de recurso acima. |
+| `useEntityForm.ts` | Hook compartilhado de formulário (react-hook-form + yup) que liga um form a uma mutation `useCreate`/`useUpdate`. |
+| `useListPage.ts` | Hook compartilhado de estado de página-lista (busca, paginação, snackbar). |
 
 ## Convenções
 
