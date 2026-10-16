@@ -43,6 +43,19 @@ const MuiButton: Components<Theme>['MuiButton'] = {
         backgroundColor: theme.vars.palette.grey[800],
       },
     }),
+    // Dark-mode contrast: outlined colored buttons use `<color>.main` for their
+    // text + border, which drops below WCAG AA on the dark surface (e.g. error
+    // #C62828 → 2.75:1). Lift text/border to the lighter tint in dark; light
+    // mode and the default (inherit) outlined button are untouched.
+    outlined: ({ theme }) =>
+      theme.applyStyles('dark', {
+        '&.MuiButton-colorPrimary': { color: theme.vars.palette.primary.light },
+        '&.MuiButton-colorSecondary': { color: theme.vars.palette.secondary.light },
+        '&.MuiButton-colorInfo': { color: theme.vars.palette.info.light },
+        '&.MuiButton-colorSuccess': { color: theme.vars.palette.success.light },
+        '&.MuiButton-colorWarning': { color: theme.vars.palette.warning.light },
+        '&.MuiButton-colorError': { color: theme.vars.palette.error.light },
+      }),
     sizeLarge: {
       minHeight: 48,
     },
@@ -201,9 +214,39 @@ const MuiRadio: Components<Theme>['MuiRadio'] = {
 };
 
 // ----------------------------------------------------------------------
+// Dark-mode contrast: MUI Chips with a semantic color use `<color>.main` for
+// their outlined/soft label text (and border), tuned for light backgrounds.
+// On the dark surfaces this drops below WCAG AA — info #1565C0 → 2.7:1,
+// warning #A05F00 → 3.05:1, error #C62828 → 2.75:1. In dark mode, switch the
+// label text and border to the lighter tint, which passes AA. Light mode and
+// the default (grey) chip are untouched.
+const darkChipColor = (
+  theme: Theme,
+  c: 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error'
+) => ({
+  color: theme.vars.palette[c].light,
+  borderColor: varAlpha(theme.vars.palette[c].lightChannel, 0.48),
+});
+
+const MuiChip: Components<Theme>['MuiChip'] = {
+  styleOverrides: {
+    root: ({ theme }) =>
+      theme.applyStyles('dark', {
+        '&.MuiChip-colorPrimary:not(.MuiChip-filled)': darkChipColor(theme, 'primary'),
+        '&.MuiChip-colorSecondary:not(.MuiChip-filled)': darkChipColor(theme, 'secondary'),
+        '&.MuiChip-colorInfo:not(.MuiChip-filled)': darkChipColor(theme, 'info'),
+        '&.MuiChip-colorSuccess:not(.MuiChip-filled)': darkChipColor(theme, 'success'),
+        '&.MuiChip-colorWarning:not(.MuiChip-filled)': darkChipColor(theme, 'warning'),
+        '&.MuiChip-colorError:not(.MuiChip-filled)': darkChipColor(theme, 'error'),
+      }),
+  },
+};
+
+// ----------------------------------------------------------------------
 
 export const components = {
   MuiCard,
+  MuiChip,
   MuiLink,
   MuiCssBaseline,
   MuiPaper,

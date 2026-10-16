@@ -107,7 +107,10 @@ const HeaderRoot = styled(AppBar, {
     zIndex: pauseZindex.top,
     backdropFilter: `blur(6px)`,
     WebkitBackdropFilter: `blur(6px)`,
-    background: `linear-gradient(135deg, rgba(240, 249, 254, 0.7) 0%, rgba(245, 253, 248, 0.7) 100%)`,
+    // Scheme-aware translucent header band from theme tokens (was a hardcoded
+    // cool gradient rgba(240,249,254)→rgba(245,253,248)). Uses the warm
+    // background.default at 70% so the blur reads on both schemes.
+    background: varAlpha(theme.vars.palette.background.defaultChannel, 0.7),
     ...theme.applyStyles('dark', {
       background: varAlpha(theme.vars.palette.background.defaultChannel, 0.7),
     }),

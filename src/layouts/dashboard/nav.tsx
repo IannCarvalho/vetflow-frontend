@@ -52,13 +52,17 @@ export function NavDesktop({
         flexDirection: 'column',
         zIndex: 'var(--layout-nav-zIndex)',
         width: 'var(--layout-nav-vertical-width)',
-        background: 'linear-gradient(135deg, #F0F9FE 0%, #F5FDF8 100%)',
+        // Scheme-aware nav backdrop from theme tokens (was a hardcoded cool
+        // gradient #F0F9FE→#F5FDF8 that matched no brand colour). Light: a soft
+        // warm→brand wash; dark: the flat dark background.
+        background: `linear-gradient(135deg, ${theme.vars.palette.background.default} 0%, ${varAlpha(theme.vars.palette.primary.lighterChannel, 0.5)} 100%)`,
         borderRight: `1px solid ${varAlpha(theme.vars.palette.primary.lightChannel, 0.3)}`,
         [theme.breakpoints.up(layoutQuery)]: {
           display: 'flex',
         },
         ...theme.applyStyles('dark', {
           background: theme.vars.palette.background.default,
+          borderRight: `1px solid ${theme.vars.palette.divider}`,
         }),
         ...sx,
       }}
@@ -149,17 +153,26 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
                   <Typography
                     component="span"
                     variant="caption"
-                    sx={{
-                      px: 2,
-                      mb: 0.5,
-                      mt: sectionIndex === 0 ? 0 : 2,
-                      display: 'block',
-                      lineHeight: 1.5,
-                      color: 'text.disabled',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase',
-                      fontWeight: 'fontWeightSemiBold',
-                    }}
+                    sx={[
+                      (theme) => ({
+                        px: 2,
+                        mb: 0.5,
+                        mt: sectionIndex === 0 ? 0 : 2,
+                        display: 'block',
+                        lineHeight: 1.5,
+                        // text.disabled (grey.600 #637381) only reaches 3.58:1 on
+                        // the dark nav (#141A21) — below AA. grey.500 (#919EAB)
+                        // passes (>= 4.6:1) while staying a muted subheader; light
+                        // mode keeps the original text.disabled tone.
+                        color: 'text.disabled',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        fontWeight: 'fontWeightSemiBold',
+                        ...theme.applyStyles('dark', {
+                          color: theme.vars.palette.grey[500],
+                        }),
+                      }),
+                    ]}
                   >
                     {section.subheader}
                   </Typography>
@@ -212,6 +225,16 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
                                   borderRadius: 1,
                                   backgroundColor: theme.vars.palette.primary.main,
                                 },
+                                // primary.main (#2E7D5B) only reaches ~3.25:1 as
+                                // text on the dark active chip — below AA. Use the
+                                // lighter primary tint for the label + accent bar
+                                // in dark; light mode is unchanged.
+                                ...theme.applyStyles('dark', {
+                                  color: theme.vars.palette.primary.light,
+                                  '&::before': {
+                                    backgroundColor: theme.vars.palette.primary.light,
+                                  },
+                                }),
                               }),
                             }),
                           ]}
