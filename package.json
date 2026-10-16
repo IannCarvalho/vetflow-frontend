@@ -1,9 +1,9 @@
 {
-  "name": "@minimal/material-kit-react",
-  "author": "minimals.cc",
-  "licence": "MIT",
-  "version": "3.0.0",
-  "private": false,
+  "name": "vetflow-frontend",
+  "author": "Iann Carvalho",
+  "license": "MIT",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,11 +17,6 @@
     "fm:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx}\"",
     "fm:fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "fix:all": "npm run lint:fix && npm run fm:fix",
-    "clean": "rm -rf node_modules .next out dist build",
-    "re:dev": "yarn clean && yarn install && yarn dev",
-    "re:build": "yarn clean && yarn install && yarn build",
-    "re:build-npm": "npm run clean && npm install && npm run build",
-    "tsc:dev": "yarn dev & yarn tsc:watch",
     "tsc:watch": "tsc --noEmit --watch",
     "tsc:print": "npx tsc --showConfig"
   },
