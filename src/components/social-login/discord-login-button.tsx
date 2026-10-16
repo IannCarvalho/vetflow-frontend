@@ -2,6 +2,9 @@ import { useCallback } from 'react';
 
 import { Box, Tooltip, IconButton } from '@mui/material';
 
+/** Discord sign-in is available only when a real OAuth client id is configured. */
+export const isDiscordConfigured = Boolean(import.meta.env.VITE_DISCORD_CLIENT_ID);
+
 export function DiscordLoginButton() {
   const handleDiscordLogin = useCallback(() => {
     const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID || 'YOUR_DISCORD_CLIENT_ID';

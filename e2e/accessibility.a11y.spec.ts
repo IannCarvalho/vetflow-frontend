@@ -38,6 +38,30 @@ async function seedAuth(page: Page) {
 }
 
 test.describe('Accessibility (axe-core WCAG 2.1 AA)', () => {
+  // /sign-in is the only public route: audit it WITHOUT seeding auth, so the
+  // brand/sign-in identity (logo, primary CTA, password-visibility toggle) is
+  // protected from a11y regressions just like the authenticated shell.
+  test('no violations: /sign-in', async ({ page }) => {
+    await page.goto('/sign-in', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(600);
+
+    const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+
+    if (results.violations.length) {
+      const lines = results.violations.map((v) => {
+        const nodes = v.nodes
+          .slice(0, 5)
+          .map((n) => `        · ${n.target.join(' ')}`)
+          .join('\n');
+        return `  [${v.impact}] ${v.id} (${v.nodes.length}x) — ${v.help}\n${nodes}`;
+      });
+      // eslint-disable-next-line no-console
+      console.error(`\naxe violations on /sign-in:\n${lines.join('\n')}`);
+    }
+
+    expect(results.violations, 'axe found violations on /sign-in').toEqual([]);
+  });
+
   for (const route of ROUTES) {
     test(`no violations: ${route}`, async ({ page }) => {
       await seedAuth(page);

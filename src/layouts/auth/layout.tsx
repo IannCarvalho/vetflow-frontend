@@ -1,4 +1,6 @@
-import type { CSSObject, Breakpoint } from '@mui/material/styles';
+import type { Breakpoint } from '@mui/material/styles';
+
+import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 
@@ -73,7 +75,12 @@ export function AuthLayout({
       sx={[
         (theme) => ({
           position: 'relative',
-          '&::before': backgroundStyles(),
+          // Brand-tinted backdrop built from theme tokens (no template jpg):
+          // a soft primary→secondary wash on light, deep neutral on dark.
+          background: `linear-gradient(135deg, ${varAlpha(theme.vars.palette.primary.lighterChannel, 0.6)} 0%, ${theme.vars.palette.background.default} 55%, ${varAlpha(theme.vars.palette.secondary.lighterChannel, 0.5)} 100%)`,
+          ...theme.applyStyles('dark', {
+            background: `linear-gradient(135deg, ${theme.vars.palette.background.default} 0%, ${theme.vars.palette.background.neutral} 100%)`,
+          }),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
@@ -85,18 +92,3 @@ export function AuthLayout({
     </LayoutSection>
   );
 }
-
-// ----------------------------------------------------------------------
-
-const backgroundStyles = (): CSSObject => ({
-  zIndex: 1,
-  opacity: 0.24,
-  width: '100%',
-  height: '100%',
-  content: "''",
-  position: 'absolute',
-  backgroundSize: 'cover',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center center',
-  backgroundImage: 'url(/assets/background/overlay.jpg)',
-});

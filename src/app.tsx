@@ -27,15 +27,25 @@ type AppProps = {
 export default function App({ children }: AppProps) {
   useScrollToTop();
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+  // Only mount GoogleOAuthProvider when a real client id is configured. The old
+  // 'YOUR_GOOGLE_CLIENT_ID' fallback produced a non-functional Google button on
+  // the public demo; now the provider (and the Google button) simply do not
+  // render unless VITE_GOOGLE_CLIENT_ID is set.
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  const tree = (
+    <AuthProvider>
+      <ThemeProvider>{children}</ThemeProvider>
+    </AuthProvider>
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider clientId={googleClientId}>
-        <AuthProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </AuthProvider>
-      </GoogleOAuthProvider>
+      {googleClientId ? (
+        <GoogleOAuthProvider clientId={googleClientId}>{tree}</GoogleOAuthProvider>
+      ) : (
+        tree
+      )}
     </QueryClientProvider>
   );
 }

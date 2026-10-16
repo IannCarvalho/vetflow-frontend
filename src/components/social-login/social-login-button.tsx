@@ -3,9 +3,18 @@ import { useCallback } from 'react';
 import { Box } from '@mui/material';
 
 import { useAuth } from '../../contexts/auth-context';
-import { GoogleLoginButton } from './google-login-button';
-import { DiscordLoginButton } from './discord-login-button';
-import { FacebookLoginButton } from './facebook-login-button';
+import { GoogleLoginButton, isGoogleConfigured } from './google-login-button';
+import { DiscordLoginButton, isDiscordConfigured } from './discord-login-button';
+import { FacebookLoginButton, isFacebookConfigured } from './facebook-login-button';
+
+/**
+ * True when at least one social provider has real credentials configured.
+ * On the public demo none are set, so the whole social block (and its "OU"
+ * divider) is hidden instead of rendering buttons that lead to a broken OAuth
+ * flow (previously Google fell back to 'YOUR_GOOGLE_CLIENT_ID').
+ */
+export const hasConfiguredSocialLogin =
+  isGoogleConfigured || isFacebookConfigured || isDiscordConfigured;
 
 export interface SocialLoginButtonsProps {
   onSuccess?: () => void;
@@ -26,13 +35,16 @@ export function SocialLoginButtons({ onSuccess }: SocialLoginButtonsProps) {
         console.log('Sending social login payload:', payload);
 
         // Call backend to validate and create user
-        const response = await fetch('https://vetflow-backend-1oey.onrender.com/auth/social-login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
+        const response = await fetch(
+          'https://vetflow-backend-1oey.onrender.com/auth/social-login',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
         console.log('Social login response status:', response.status);
 
@@ -59,6 +71,11 @@ export function SocialLoginButtons({ onSuccess }: SocialLoginButtonsProps) {
     [setAuthData, onSuccess]
   );
 
+  // Nothing configured → render nothing (the sign-in view also hides the divider).
+  if (!hasConfiguredSocialLogin) {
+    return null;
+  }
+
   return (
     <Box
       sx={{
@@ -67,9 +84,9 @@ export function SocialLoginButtons({ onSuccess }: SocialLoginButtonsProps) {
         justifyContent: 'center',
       }}
     >
-      <GoogleLoginButton onSuccess={handleSocialSuccess} />
-      <FacebookLoginButton />
-      <DiscordLoginButton />
+      {isGoogleConfigured && <GoogleLoginButton onSuccess={handleSocialSuccess} />}
+      {isFacebookConfigured && <FacebookLoginButton />}
+      {isDiscordConfigured && <DiscordLoginButton />}
     </Box>
   );
 }
