@@ -6,7 +6,7 @@ Componentes de UI genéricos e de domínio, reaproveitados por várias telas. Na
 
 ## Responsabilidade
 
-- Fornecer peças de UI compartilhadas (ícones, label, scrollbar, logo, cores).
+- Fornecer peças de UI compartilhadas (ícones, scrollbar, logo).
 - Agrupar widgets de domínio transversais (busca global, central de notificações, botões de login social, callback OAuth).
 - Manter cada componente autossuficiente, estilizado via tema MUI (ver [`src/theme`](../theme/README.md)).
 
@@ -18,10 +18,7 @@ Componentes de UI genéricos e de domínio, reaproveitados por várias telas. Na
 | `global-search/` | Busca global (atalho/omnibox) sobre os recursos. |
 | `iconify/` | Wrapper `<Iconify>` + conjunto de ícones registrados. |
 | `logo/` | Logo da aplicação. |
-| `label/` | Chip/etiqueta de status reutilizável. |
 | `scrollbar/` | Scrollbar customizada (SimpleBar). |
-| `svg-color/` | Máscara SVG colorida por `currentColor`. |
-| `color-utils/` | Preview e seletor de cor. |
 | `social-login/` | Botões de login Google, Facebook e Discord. |
 | `oauth-callback/` | Handler da rota de callback OAuth. |
 
