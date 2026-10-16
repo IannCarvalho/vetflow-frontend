@@ -37,12 +37,17 @@ export const themeConfig: ThemeConfig = {
    * Palette
    *************************************** */
   palette: {
+    // Primary harmonised with the brand logo's teal (~#0A9A93 / #009090).
+    // Every shade in use is WCAG AA verified: main #0B7A73 → white-on-fill 5.19:1
+    // and main-as-text on the warm light bg (#FAF9F7) 4.93:1; light #5FC7BF →
+    // 8.68:1 as text on the dark bg (#141A21). success keeps its own green below
+    // (success !== primary) so semantic "success" stays green, not brand teal.
     primary: {
-      lighter: '#E3F1EA',
-      light: '#7FBCA1',
-      main: '#2E7D5B',
-      dark: '#1F5B41',
-      darker: '#123828',
+      lighter: '#D6F0ED',
+      light: '#5FC7BF',
+      main: '#0B7A73',
+      dark: '#075952',
+      darker: '#043530',
       contrastText: '#FFFFFF',
     },
     secondary: {
